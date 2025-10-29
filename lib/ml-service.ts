@@ -1,6 +1,6 @@
 import { AnalysisResult, Highlight, Prediction, SourceInfo } from "./types";
 import { generateId, extractDomain } from "./utils";
-import { getCachedResult, setCachedResult } from "./cache";
+import { getCachedResult, setCachedResult } from "@/lib/cache";
 import { analyzeWithGeminiRetry, getGeminiStatus } from "./gemini-service";
 import { updateGlobalStats } from "./stats-client";
 
@@ -8,10 +8,12 @@ import { updateGlobalStats } from "./stats-client";
 const geminiStatus = getGeminiStatus();
 if (geminiStatus.configured) {
   console.log(`🤖 Google Gemini API Key loaded: ${geminiStatus.keyPreview}`);
-  console.log('✨ Primary AI: Google Gemini Pro (90%+ accuracy)');
+  console.log("✨ Primary AI: Google Gemini Pro (90%+ accuracy)");
 } else {
-  console.warn('⚠️ GEMINI_API_KEY not found - will use rule-based analysis only');
-  console.warn('💡 Get free key at: https://makersuite.google.com/app/apikey');
+  console.warn(
+    "⚠️ GEMINI_API_KEY not found - will use rule-based analysis only"
+  );
+  console.warn("💡 Get free key at: https://makersuite.google.com/app/apikey");
 }
 
 // Analysis Statistics for monitoring
@@ -21,19 +23,25 @@ export const analysisStats = {
   geminiFailed: 0,
   cacheHits: 0,
   ruleBasedOnly: 0,
-  
+
   getSuccessRate(): string {
     const attempted = this.geminiSuccess + this.geminiFailed;
-    return attempted > 0 ? ((this.geminiSuccess / attempted) * 100).toFixed(1) + '%' : 'N/A';
+    return attempted > 0
+      ? ((this.geminiSuccess / attempted) * 100).toFixed(1) + "%"
+      : "N/A";
   },
-  
+
   getCacheRate(): string {
-    return this.total > 0 ? ((this.cacheHits / this.total) * 100).toFixed(1) + '%' : 'N/A';
+    return this.total > 0
+      ? ((this.cacheHits / this.total) * 100).toFixed(1) + "%"
+      : "N/A";
   },
-  
+
   getGeminiUsageRate(): string {
-    return this.total > 0 ? ((this.geminiSuccess / this.total) * 100).toFixed(1) + '%' : 'N/A';
-  }
+    return this.total > 0
+      ? ((this.geminiSuccess / this.total) * 100).toFixed(1) + "%"
+      : "N/A";
+  },
 };
 
 // Legacy API stats for backward compatibility
@@ -52,12 +60,14 @@ let apiStats = {
 export function getApiStats() {
   return {
     ...apiStats,
-    cacheHitRate: apiStats.totalCalls > 0 
-      ? ((apiStats.cacheHits / apiStats.totalCalls) * 100).toFixed(1) + '%'
-      : '0%',
-    failureRate: apiStats.apiCalls > 0
-      ? ((apiStats.failures / apiStats.apiCalls) * 100).toFixed(1) + '%'
-      : '0%',
+    cacheHitRate:
+      apiStats.totalCalls > 0
+        ? ((apiStats.cacheHits / apiStats.totalCalls) * 100).toFixed(1) + "%"
+        : "0%",
+    failureRate:
+      apiStats.apiCalls > 0
+        ? ((apiStats.failures / apiStats.apiCalls) * 100).toFixed(1) + "%"
+        : "0%",
   };
 }
 
@@ -79,10 +89,10 @@ export function resetApiStats() {
  * Log detailed error information for debugging
  */
 function logDetailedError(error: any, context: string) {
-  console.error(`\n${'='.repeat(50)}`);
+  console.error(`\n${"=".repeat(50)}`);
   console.error(`❌ ERROR in ${context}`);
-  console.error(`Message: ${error.message || 'Unknown'}`);
-  console.error(`Type: ${error.constructor?.name || 'Unknown'}`);
+  console.error(`Message: ${error.message || "Unknown"}`);
+  console.error(`Type: ${error.constructor?.name || "Unknown"}`);
   if (error.response) {
     console.error(`Status: ${error.response.status}`);
     console.error(`Body: ${JSON.stringify(error.response.data).slice(0, 200)}`);
@@ -90,7 +100,7 @@ function logDetailedError(error: any, context: string) {
   if (error.stack) {
     console.error(`Stack: ${error.stack.slice(0, 200)}`);
   }
-  console.error('='.repeat(50) + '\n');
+  console.error("=".repeat(50) + "\n");
 }
 
 /**
@@ -107,82 +117,96 @@ async function callHuggingFaceAPI(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      console.log(`🤖 HuggingFace API [${modelName}] attempt ${attempt + 1}/${maxRetries}`);
-      
+      console.log(
+        `🤖 HuggingFace API [${modelName}] attempt ${attempt + 1}/${maxRetries}`
+      );
+
       if (!process.env.HUGGINGFACE_API_KEY) {
-        throw new Error('API key not configured');
+        throw new Error("API key not configured");
       }
 
       const response = await fetch(API_URL, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           inputs: truncatedText,
           options: {
-            wait_for_model: true,  // CRITICAL: Wait for model to load
-            use_cache: true         // Use HuggingFace's cache if available
-          }
-        })
+            wait_for_model: true, // CRITICAL: Wait for model to load
+            use_cache: true, // Use HuggingFace's cache if available
+          },
+        }),
       });
 
       // Check response status
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`❌ API returned ${response.status}: ${errorText.slice(0, 200)}`);
-        
+        console.error(
+          `❌ API returned ${response.status}: ${errorText.slice(0, 200)}`
+        );
+
         // If model is loading (503), wait longer and retry
         if (response.status === 503) {
-          console.log('⏳ Model is loading (cold start), waiting 5 seconds...');
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          console.log("⏳ Model is loading (cold start), waiting 5 seconds...");
+          await new Promise((resolve) => setTimeout(resolve, 5000));
           continue; // Retry immediately
         }
-        
-        throw new Error(`API returned ${response.status}: ${errorText.slice(0, 100)}`);
+
+        throw new Error(
+          `API returned ${response.status}: ${errorText.slice(0, 100)}`
+        );
       }
 
       const result = await response.json();
-      
+
       // Validate response format
       if (!result || !Array.isArray(result) || result.length === 0) {
-        throw new Error('Invalid response format from API');
+        throw new Error("Invalid response format from API");
       }
 
-      console.log(`✅ HuggingFace API success:`, JSON.stringify(result).slice(0, 150));
+      console.log(
+        `✅ HuggingFace API success:`,
+        JSON.stringify(result).slice(0, 150)
+      );
       return result;
-
     } catch (error: any) {
-      const errorMessage = error?.message || 'Unknown error';
-      console.error(`❌ Attempt ${attempt + 1}/${maxRetries} failed: ${errorMessage}`);
-      
+      const errorMessage = error?.message || "Unknown error";
+      console.error(
+        `❌ Attempt ${attempt + 1}/${maxRetries} failed: ${errorMessage}`
+      );
+
       // Update stats
       apiStats.lastError = errorMessage;
       apiStats.lastErrorTime = Date.now();
 
       if (attempt === maxRetries - 1) {
-        console.error('🚫 All retries exhausted for this model');
+        console.error("🚫 All retries exhausted for this model");
         logDetailedError(error, `HuggingFace API - ${modelName}`);
         throw error;
       }
-      
+
       // Exponential backoff: 2s, 4s, 8s
       const waitTime = 2000 * Math.pow(2, attempt);
       console.log(`⏳ Waiting ${waitTime}ms before retry...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   }
 
-  throw new Error('Max retries reached');
+  throw new Error("Max retries reached");
 }
 
 /**
  * Legacy function - no longer used (using Gemini instead)
  * Kept for backward compatibility
  */
-async function callHuggingFaceWithModelFallback(text: string): Promise<{ result: any; model: string }> {
-  throw new Error('HuggingFace models not configured - using Gemini AI instead');
+async function callHuggingFaceWithModelFallback(
+  text: string
+): Promise<{ result: any; model: string }> {
+  throw new Error(
+    "HuggingFace models not configured - using Gemini AI instead"
+  );
 }
 
 // Known credible sources
@@ -281,12 +305,18 @@ export async function analyzeFakeNews(
   if (cachedResult) {
     analysisStats.cacheHits++;
     apiStats.cacheHits++;
-    console.log(`✅ Cache HIT - returning cached result (cache rate: ${analysisStats.getCacheRate()})`);
+    console.log(
+      `✅ Cache HIT - returning cached result (cache rate: ${analysisStats.getCacheRate()})`
+    );
     return cachedResult;
   }
 
   console.log(`❌ Cache MISS - performing fresh analysis`);
-  console.log(`📊 Stats: ${analysisStats.total} total | Gemini: ${analysisStats.getGeminiUsageRate()} | Cache: ${analysisStats.getCacheRate()}`);
+  console.log(
+    `📊 Stats: ${
+      analysisStats.total
+    } total | Gemini: ${analysisStats.getGeminiUsageRate()} | Cache: ${analysisStats.getCacheRate()}`
+  );
 
   const highlights: Highlight[] = [];
   let flags: string[] = [];
@@ -294,32 +324,36 @@ export async function analyzeFakeNews(
   // 2. PRIMARY: Try Google Gemini AI Analysis
   let geminiResult = null;
   let mlScore = 50; // Default neutral
-  let apiProvider = 'rule-based';
-  
+  let apiProvider = "rule-based";
+
   try {
-    console.log('🚀 Attempting Gemini AI analysis...');
+    console.log("🚀 Attempting Gemini AI analysis...");
     geminiResult = await analyzeWithGeminiRetry(text);
-    
+
     if (geminiResult) {
       analysisStats.geminiSuccess++;
       mlScore = geminiResult.credibilityScore;
-      apiProvider = 'gemini';
-      console.log(`✅ Gemini success! Credibility: ${mlScore}/100 | Prediction: ${geminiResult.prediction}`);
+      apiProvider = "gemini";
+      console.log(
+        `✅ Gemini success! Credibility: ${mlScore}/100 | Prediction: ${geminiResult.prediction}`
+      );
     } else {
       analysisStats.geminiFailed++;
-      console.log('⚠️ Gemini returned null, falling back to rule-based analysis');
+      console.log(
+        "⚠️ Gemini returned null, falling back to rule-based analysis"
+      );
     }
   } catch (error: any) {
     analysisStats.geminiFailed++;
-    console.error('🚫 Gemini analysis failed completely:', error.message);
+    console.error("🚫 Gemini analysis failed completely:", error.message);
   }
 
   // 3. SUPPLEMENT: Rule-based analysis (always runs for additional signals)
-  console.log('📊 Running rule-based analysis as supplement...');
+  console.log("📊 Running rule-based analysis as supplement...");
   const clickbaitScore = detectClickbait(text, highlights);
   const sentimentScore = analyzeSentiment(text, highlights);
   const biasScore = detectBias(text, highlights);
-  
+
   // Source credibility
   let sourceScore = 50;
   let sourceInfo: SourceInfo | undefined;
@@ -333,7 +367,7 @@ export async function analyzeFakeNews(
     clickbaitScore,
     sentimentScore,
     biasScore,
-    sourceScore
+    sourceScore,
   };
 
   // Additional checks
@@ -344,41 +378,40 @@ export async function analyzeFakeNews(
   // 4. COMBINE: Gemini + Rule-based scores
   let overallScore: number;
   let signals: any;
-  
+
   if (geminiResult) {
     // Gemini available: 70% Gemini, 30% rules
     overallScore = Math.round(
-      mlScore * 0.70 +
-      clickbaitScore * 0.10 +
-      sentimentScore * 0.10 +
-      biasScore * 0.05 +
-      sourceScore * 0.05
+      mlScore * 0.7 +
+        clickbaitScore * 0.1 +
+        sentimentScore * 0.1 +
+        biasScore * 0.05 +
+        sourceScore * 0.05
     );
-    
+
     signals = {
       mlScore,
-      ...ruleBasedSignals
+      ...ruleBasedSignals,
     };
-    
+
     // Merge flags from Gemini and rules
     const ruleFlags = generateRuleBasedFlags(text, ruleBasedSignals);
     flags = [...new Set([...geminiResult.flags, ...ruleFlags, ...flags])]; // Deduplicate
-    
   } else {
     // Pure rule-based fallback
     analysisStats.ruleBasedOnly++;
     overallScore = Math.round(
       clickbaitScore * 0.35 +
-      sentimentScore * 0.35 +
-      biasScore * 0.20 +
-      sourceScore * 0.10
+        sentimentScore * 0.35 +
+        biasScore * 0.2 +
+        sourceScore * 0.1
     );
-    
+
     signals = {
       mlScore: 50, // Neutral
-      ...ruleBasedSignals
+      ...ruleBasedSignals,
     };
-    
+
     // Generate rule-based flags
     const ruleFlags = generateRuleBasedFlags(text, ruleBasedSignals);
     flags = [...new Set([...ruleFlags, ...flags])];
@@ -387,7 +420,7 @@ export async function analyzeFakeNews(
   // 5. DETERMINE: Final prediction
   let prediction: Prediction;
   let confidence: number;
-  
+
   if (geminiResult && geminiResult.confidence > 80) {
     // Trust Gemini's high-confidence prediction
     prediction = geminiResult.prediction;
@@ -395,19 +428,20 @@ export async function analyzeFakeNews(
   } else {
     // Use combined score
     if (overallScore < 35) {
-      prediction = 'FAKE';
+      prediction = "FAKE";
       confidence = Math.min(100, (50 - overallScore) * 2);
     } else if (overallScore > 75) {
-      prediction = 'REAL';
+      prediction = "REAL";
       confidence = Math.min(100, (overallScore - 50) * 2);
     } else {
-      prediction = 'UNCERTAIN';
+      prediction = "UNCERTAIN";
       confidence = 50 + Math.abs(overallScore - 50) / 2;
     }
   }
 
   // 6. GENERATE: Explanation
-  const explanation = geminiResult?.reasoning || 
+  const explanation =
+    geminiResult?.reasoning ||
     generateFallbackExplanation(overallScore, flags, prediction);
 
   // 7. BUILD: Result object
@@ -428,13 +462,17 @@ export async function analyzeFakeNews(
     ...(geminiResult && {
       factualConcerns: geminiResult.factualConcerns,
       apiProvider,
-      mlUsed: true
-    })
+      mlUsed: true,
+    }),
   };
 
   // 8. CACHE: Store result for future requests
   setCachedResult(text, result);
-  console.log(`💾 Result cached | Prediction: ${prediction} (${Math.round(confidence)}% confidence)`);
+  console.log(
+    `💾 Result cached | Prediction: ${prediction} (${Math.round(
+      confidence
+    )}% confidence)`
+  );
 
   // 9. GLOBAL STATS: Push to aggregated dataset (non-blocking)
   updateGlobalStats({
@@ -459,66 +497,70 @@ export async function analyzeFakeNews(
  */
 function generateRuleBasedFlags(text: string, signals: any): string[] {
   const flags: string[] = [];
-  
+
   if (signals.clickbaitScore < 40) {
-    flags.push('Contains clickbait patterns');
+    flags.push("Contains clickbait patterns");
   }
-  
+
   if (signals.sentimentScore < 30) {
-    flags.push('Extreme emotional language detected');
+    flags.push("Extreme emotional language detected");
   }
-  
+
   if (signals.biasScore < 35) {
-    flags.push('Strong ideological bias present');
+    flags.push("Strong ideological bias present");
   }
-  
+
   if (signals.sourceScore < 30) {
-    flags.push('Source has questionable credibility');
+    flags.push("Source has questionable credibility");
   }
-  
+
   // ALL CAPS check
   const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
   if (capsRatio > 0.25) {
-    flags.push('Excessive use of capital letters');
+    flags.push("Excessive use of capital letters");
   }
-  
+
   // Excessive punctuation
   if (/[!?]{3,}/.test(text)) {
-    flags.push('Sensationalist punctuation (!!!)');
+    flags.push("Sensationalist punctuation (!!!)");
   }
-  
+
   // Conspiracy language
   const conspiracyPatterns = [
     /they don'?t want you to know/i,
     /wake up/i,
     /cover-?up/i,
     /mainstream media (is )?(lying|hiding)/i,
-    /the truth about/i
+    /the truth about/i,
   ];
-  
-  if (conspiracyPatterns.some(pattern => pattern.test(text))) {
-    flags.push('Conspiracy theory language');
+
+  if (conspiracyPatterns.some((pattern) => pattern.test(text))) {
+    flags.push("Conspiracy theory language");
   }
-  
+
   // Urgency manipulation
   if (/\b(share|act|sign) (now|immediately|before|urgent)/i.test(text)) {
-    flags.push('Urgency manipulation tactics');
+    flags.push("Urgency manipulation tactics");
   }
-  
+
   return flags;
 }
 
 /**
  * Generate fallback explanation when Gemini is unavailable
  */
-function generateFallbackExplanation(score: number, flags: string[], prediction: Prediction): string {
-  if (prediction === 'FAKE') {
-    const topFlags = flags.slice(0, 2).join(' and ') || 'multiple red flags';
+function generateFallbackExplanation(
+  score: number,
+  flags: string[],
+  prediction: Prediction
+): string {
+  if (prediction === "FAKE") {
+    const topFlags = flags.slice(0, 2).join(" and ") || "multiple red flags";
     return `This content shows signs of misinformation including ${topFlags}. The analysis suggests treating this with skepticism and verifying claims through trusted sources.`;
-  } else if (prediction === 'REAL') {
+  } else if (prediction === "REAL") {
     return `This content appears to follow standard journalistic practices with minimal red flags. It shows balanced language and credible presentation, though independent verification is always recommended.`;
   } else {
-    const mainConcern = flags[0] || 'mixed signals';
+    const mainConcern = flags[0] || "mixed signals";
     return `This content has mixed indicators. While some concerns were detected (${mainConcern}), more context would be needed for a definitive assessment. Consider checking multiple sources.`;
   }
 }
