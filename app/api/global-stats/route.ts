@@ -6,7 +6,7 @@ import { promises as fs } from "fs";
 import path from "path";
 
 // Path to store global stats
-const STATS_FILE = path.join(process.cwd(), "data", "global-stats.json");
+const STATS_FILE = path.join("/tmp", "global-stats.json");
 
 interface StoredSignals {
   mlScore: number;
