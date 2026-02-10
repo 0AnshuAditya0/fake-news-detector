@@ -78,7 +78,7 @@ export default function AdminPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <Card className="max-w-md">
           <CardContent className="pt-6">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
