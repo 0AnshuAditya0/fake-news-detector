@@ -6,11 +6,26 @@ import { RecentAnalyses } from "@/components/RecentAnalyses";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getRecentAnalyses, getStats } from "@/lib/utils";
 import { AnalysisResult, DashboardStats as StatsType } from "@/lib/types";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
-import { BarChart3 } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { BarChart3, Globe, User, ShieldCheck } from "lucide-react";
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<StatsType>({
+  const [view, setView] = useState<"global" | "personal">("global");
+  
+  // Load saved preference
+  useEffect(() => {
+    const savedView = localStorage.getItem("dashboard-view");
+    if (savedView === "global" || savedView === "personal") {
+      setView(savedView);
+    }
+  }, []);
+
+  // Save preference
+  useEffect(() => {
+    localStorage.setItem("dashboard-view", view);
+  }, [view]);
+
+  const [personalStats, setPersonalStats] = useState<StatsType>({
     totalAnalyses: 0,
     fakeDetected: 0,
     averageConfidence: 0,
@@ -18,238 +33,211 @@ export default function DashboardPage() {
   });
   const [globalStats, setGlobalStats] = useState<any>(null);
   const [analyses, setAnalyses] = useState<AnalysisResult[]>([]);
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [globalChartData, setGlobalChartData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load local stats and analyses
-    const loadData = async () => {
-      const loadedStats = await getStats();
-      const loadedAnalyses = await getRecentAnalyses();
-
-      setStats(loadedStats);
-      setAnalyses(loadedAnalyses);
-
-      // Calculate chart data from local analyses
-      if (loadedAnalyses.length > 0) {
-        const fakeCount = loadedAnalyses.filter(a => a.prediction === "FAKE").length;
-        const realCount = loadedAnalyses.filter(a => a.prediction === "REAL").length;
-        const uncertainCount = loadedAnalyses.filter(a => a.prediction === "UNCERTAIN").length;
-
-        setChartData([
-          { name: "Fake", value: fakeCount, color: "#EF4444" },
-          { name: "Real", value: realCount, color: "#10B981" },
-          { name: "Uncertain", value: uncertainCount, color: "#F59E0B" },
-        ]);
-      } else {
-        setChartData([]);
+    const loadGlobalStats = async () => {
+      try {
+        const response = await fetch("/api/global-stats");
+        const data = await response.json();
+        setGlobalStats(data);
+      } catch (error) {
+        console.error("Failed to load global stats:", error);
       }
     };
 
-    loadData();
-
-    // Listen for cross-device sync updates
-    const handleAnalysesUpdate = () => {
-      loadData();
+    const loadPersonalData = async () => {
+      const stats = await getStats();
+      const loadedAnalyses = await getRecentAnalyses();
+      setPersonalStats(stats);
+      setAnalyses(loadedAnalyses);
     };
 
-    window.addEventListener('analysesUpdated', handleAnalysesUpdate);
-
-    return () => {
-      window.removeEventListener('analysesUpdated', handleAnalysesUpdate);
-    };
+    Promise.all([loadGlobalStats(), loadPersonalData()]).finally(() => setLoading(false));
   }, []);
 
+  const currentStats = view === "global" ? {
+    totalAnalyses: globalStats?.totalAnalyses || 0,
+    fakeDetected: globalStats?.fakeDetected || 0,
+    averageConfidence: globalStats?.averageConfidence || 0,
+    mostAnalyzedDomain: globalStats?.mostAnalyzedDomain || "N/A"
+  } : personalStats;
+
+  const currentAnalyses = view === "global" ? (globalStats?.recentAnalyses || []) : analyses;
+
+  const chartData = view === "global" ? [
+    { name: "Fake", value: globalStats?.fakeCount || 0, color: "#EF4444" },
+    { name: "Real", value: globalStats?.realCount || 0, color: "#22C55E" },
+    { name: "Uncertain", value: globalStats?.uncertainCount || 0, color: "#64748B" },
+  ] : [
+    { name: "Fake", value: analyses.filter(a => a.prediction === "FAKE").length, color: "#EF4444" },
+    { name: "Real", value: analyses.filter(a => a.prediction === "REAL").length, color: "#22C55E" },
+    { name: "Uncertain", value: analyses.filter(a => a.prediction === "UNCERTAIN").length, color: "#64748B" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800 py-8 sm:py-12 px-4">
-      <div className="container mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">
-            Analytics Dashboard
-          </h1>
-          <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">
-            Your personal analysis statistics 📊
-          </p>
+    <div className="min-h-screen bg-background text-foreground py-12 px-4 font-sans">
+      <div className="container mx-auto max-w-6xl">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tighter uppercase italic">
+              Insight <span className="text-primary">Dashboard</span>
+            </h1>
+            <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
+              {view === "global" ? "Public Community Intelligence" : "Your Personal Analysis History"}
+            </p>
+          </div>
+
+          <div className="flex bg-muted p-1 border border-border">
+            <button
+              onClick={() => setView("global")}
+              className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                view === "global" ? "bg-background text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Global Stats
+            </button>
+            <button
+              onClick={() => setView("personal")}
+              className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                view === "personal" ? "bg-background text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              My Activity
+            </button>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="mb-8">
-          <DashboardStats stats={stats} />
+        <div className="mb-12">
+          <DashboardStats stats={currentStats} />
         </div>
 
-        {/* Charts and Recent Analyses */}
-        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+        {/* Community & Insights Section */}
+        <div className="grid lg:grid-cols-3 gap-8 mb-12">
           {/* Distribution Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Analysis Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {chartData.length > 0 && chartData.some((d) => d.value > 0) ? (
-                <ResponsiveContainer width="100%" height={300} className="sm:!h-[400px]">
+          <div className="lg:col-span-1 bg-background border border-border">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">Verdict Distribution</h3>
+              <BarChart3 className="w-4 h-4 text-primary" />
+            </div>
+            <div className="p-6 h-[300px]">
+              {chartData.some(d => d.value > 0) ? (
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={chartData}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                      }
+                      innerRadius={60}
                       outerRadius={80}
-                      innerRadius={40}
-                      fill="#8884d8"
+                      paddingAngle={0}
                       dataKey="value"
-                      paddingAngle={5}
-                      className="sm:!outerRadius-[120] sm:!innerRadius-[60]"
+                      stroke="none"
                     >
                       {chartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '2px solid #4F46E5',
-                        borderRadius: '8px',
-                        padding: '8px',
-                        fontSize: '12px'
-                      }}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: '12px' }}
-                    />
+                    <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[300px] sm:h-[400px] flex items-center justify-center text-gray-500 dark:text-gray-400">
-                  <div className="text-center">
-                    <BarChart3 className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>No data available yet</p>
-                    <p className="text-sm mt-1">Start analyzing articles to see statistics</p>
-                  </div>
+                <div className="h-full flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  No data available
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Top Keywords/Domains */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Analysis Insights</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                    Most Common Red Flags
-                  </h4>
-                  {analyses.length > 0 ? (
-                    <div className="space-y-2">
-                      {getTopFlags(analyses).map((flag, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                        >
-                          <span className="text-sm text-gray-700">{flag.text}</span>
-                          <span className="text-xs font-semibold text-gray-500">
-                            {flag.count}x
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">No data available</p>
-                  )}
+          {/* Top Flags */}
+          <div className="lg:col-span-1 bg-background border border-border">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">Common Red Flags</h3>
+              <ShieldCheck className="w-4 h-4 text-primary" />
+            </div>
+            <div className="p-6 space-y-3">
+              {(view === "global" ? (globalStats?.topFlags || []) : getTopFlags(analyses)).length > 0 ? (
+                (view === "global" ? globalStats.topFlags : getTopFlags(analyses)).map((flag: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-muted/30 border border-border">
+                    <span className="text-[10px] font-bold uppercase tracking-wider">{flag.text}</span>
+                    <span className="text-[10px] text-primary font-bold">{flag.count}x</span>
+                  </div>
+                ))
+              ) : (
+                <div className="py-12 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  No flags detected
                 </div>
+              )}
+            </div>
+          </div>
 
-                <div className="pt-4 border-t">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                    Average Scores by Signal
-                  </h4>
-                  {analyses.length > 0 ? (
-                    <div className="space-y-2">
-                      {getAverageSignals(analyses).map((signal, index) => (
-                        <div key={index} className="space-y-1">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600">{signal.name}</span>
-                            <span className="font-semibold">{signal.score}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div
-                              className="bg-primary h-1.5 rounded-full transition-all"
-                              style={{ width: `${signal.score}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500">No data available</p>
-                  )}
+          {/* Domain Trust/Signals */}
+          <div className="lg:col-span-1 bg-background border border-border">
+            <div className="p-6 border-b border-border flex items-center justify-between">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">Signal Averages</h3>
+              <Globe className="w-4 h-4 text-primary" />
+            </div>
+            <div className="p-6 space-y-4">
+              {(view === "global" ? (globalStats?.averageSignals || []) : getAverageSignals(analyses)).map((signal: any, i: number) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{signal.name}</span>
+                    <span className="text-[10px] font-bold">{signal.score}%</span>
+                  </div>
+                  <div className="w-full h-1 bg-muted">
+                    <div 
+                      className="h-full bg-primary" 
+                      style={{ width: `${signal.score}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Recent Analyses Table */}
-        <RecentAnalyses analyses={analyses} limit={10} />
+        {/* Global/Personal Table */}
+        <div className="bg-background border border-border overflow-hidden">
+          <div className="p-6 border-b border-border flex items-center justify-between">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">
+              {view === "global" ? "Global Feed" : "Personal Records"}
+            </h3>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+              Latest Entries
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <RecentAnalyses analyses={currentAnalyses} limit={10} hideHeader />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function getTopFlags(analyses: AnalysisResult[]): Array<{ text: string; count: number }> {
+function getTopFlags(analyses: AnalysisResult[]): any[] {
   const flagCounts: Record<string, number> = {};
-
-  analyses.forEach((analysis) => {
-    analysis.flags.forEach((flag) => {
-      flagCounts[flag] = (flagCounts[flag] || 0) + 1;
-    });
-  });
-
-  return Object.entries(flagCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([text, count]) => ({ text, count }));
+  analyses.forEach((a) => a.flags.forEach((f) => flagCounts[f] = (flagCounts[f] || 0) + 1));
+  return Object.entries(flagCounts).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([text, count]) => ({ text, count }));
 }
 
-function getAverageSignals(
-  analyses: AnalysisResult[]
-): Array<{ name: string; score: number }> {
+function getAverageSignals(analyses: AnalysisResult[]): any[] {
   if (analyses.length === 0) return [];
-
-  const totals = {
-    mlScore: 0,
-    sentimentScore: 0,
-    clickbaitScore: 0,
-    sourceScore: 0,
-    biasScore: 0,
-  };
-
-  analyses.forEach((analysis) => {
-    totals.mlScore += analysis.signals.mlScore;
-    totals.sentimentScore += analysis.signals.sentimentScore;
-    totals.clickbaitScore += analysis.signals.clickbaitScore;
-    totals.sourceScore += analysis.signals.sourceScore;
-    totals.biasScore += analysis.signals.biasScore;
-  });
-
-  const count = analyses.length;
-
+  const totals = analyses.reduce((acc, a) => ({
+    ml: acc.ml + a.signals.mlScore,
+    sentiment: acc.sentiment + a.signals.sentimentScore,
+    clickbait: acc.clickbait + a.signals.clickbaitScore,
+    source: acc.source + a.signals.sourceScore,
+    bias: acc.bias + a.signals.biasScore,
+  }), { ml: 0, sentiment: 0, clickbait: 0, source: 0, bias: 0 });
+  const n = analyses.length;
   return [
-    { name: "ML Model", score: Math.round(totals.mlScore / count) },
-    { name: "Sentiment", score: Math.round(totals.sentimentScore / count) },
-    { name: "Clickbait", score: Math.round(totals.clickbaitScore / count) },
-    { name: "Source", score: Math.round(totals.sourceScore / count) },
-    { name: "Bias", score: Math.round(totals.biasScore / count) },
+    { name: "Prediction", score: Math.round(totals.ml / n) },
+    { name: "Confidence", score: Math.round(totals.sentiment / n) },
+    { name: "Language", score: Math.round(totals.clickbait / n) },
+    { name: "Integrity", score: Math.round(totals.source / n) },
+    { name: "Neutrality", score: Math.round(totals.bias / n) },
   ];
 }

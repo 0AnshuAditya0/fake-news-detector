@@ -81,7 +81,7 @@ class SharedStorage {
 
       // Only sync if shared data is newer and from different device
       if (sharedData.lastUpdated > this.lastSync &&
-          sharedData.deviceId !== this.getDeviceId()) {
+        sharedData.deviceId !== this.getDeviceId()) {
 
         // Merge analyses (keep local ones, add new shared ones)
         const mergedAnalyses = [...localAnalyses];
@@ -338,21 +338,21 @@ export function formatDate(timestamp: number): string {
 }
 
 export function getCredibilityColor(score: number): string {
-  if (score < 40) return "text-red-600";
-  if (score < 70) return "text-yellow-600";
-  return "text-green-600";
+  if (score < 40) return "text-destructive";
+  if (score < 70) return "text-warning";
+  return "text-success";
 }
 
 export function getCredibilityBgColor(score: number): string {
-  if (score < 40) return "bg-red-100";
-  if (score < 70) return "bg-yellow-100";
-  return "bg-green-100";
+  if (score < 40) return "bg-destructive/5 border border-destructive";
+  if (score < 70) return "bg-warning/5 border border-warning";
+  return "bg-success/5 border border-success";
 }
 
 export function getCredibilityLabel(score: number): string {
-  if (score < 40) return "High Risk";
-  if (score < 70) return "Medium Risk";
-  return "Low Risk";
+  if (score < 40) return "UNRELIABLE";
+  if (score < 70) return "POTENTIALLY BIASED";
+  return "HIGHLY RELIABLE";
 }
 
 export function truncateText(text: string, maxLength: number): string {

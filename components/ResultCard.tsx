@@ -52,97 +52,84 @@ export function ResultCard({ result }: ResultCardProps) {
   return (
     <div className="space-y-6">
       {/* Verdict Section */}
-      <Card className="bg-white dark:bg-slate-900 border-indigo-200 dark:border-cyan-500/30">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <CardTitle className="flex items-center gap-3 text-base sm:text-lg">
-              {getPredictionIcon()}
-              Analysis Verdict
-            </CardTitle>
-            <Badge variant={getPredictionColor() as any} className="text-sm sm:text-lg px-3 sm:px-4 py-1 sm:py-2 w-fit">
-              {result.prediction}
-            </Badge>
+      <div className="bg-background border border-border p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 pb-6 border-b border-border">
+          <div className="flex items-center gap-3 text-base sm:text-lg font-bold uppercase tracking-tight">
+            {getPredictionIcon()}
+            Analysis Verdict
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Confidence Level</span>
-                <span className="text-sm font-bold">{result.confidence}%</span>
-              </div>
-              <Progress value={result.confidence} className="h-2" />
-            </div>
+          <div className={`text-sm sm:text-lg px-4 py-2 font-bold uppercase border ${
+            result.prediction === 'FAKE' ? 'border-destructive text-destructive' : 
+            result.prediction === 'REAL' ? 'border-success text-success' : 
+            'border-warning text-warning'
+          }`}>
+            {result.prediction}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Confidence Level</span>
+            <span className="text-sm font-bold">{result.confidence}%</span>
+          </div>
+          <div className="h-2 bg-muted">
+            <div 
+              className="h-full bg-primary" 
+              style={{ width: `${result.confidence}%` }}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Explanation */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5" />
-            Explanation
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{result.explanation}</p>
-        </CardContent>
-      </Card>
+      <div className="bg-background border border-border p-6">
+        <div className="flex items-center gap-2 mb-4 font-bold uppercase tracking-widest text-xs text-muted-foreground">
+          <MessageSquare className="w-4 h-4 text-primary" />
+          Explanation
+        </div>
+        <p className="text-foreground leading-relaxed text-sm">{result.explanation}</p>
+      </div>
 
       {/* Red Flags */}
       {result.flags.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
-              Red Flags Detected
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {result.flags.map((flag, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <span className="text-red-500 mt-1">•</span>
-                  <span className="text-gray-700 dark:text-gray-300">{flag}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+        <div className="bg-background border border-border p-6">
+          <div className="flex items-center gap-2 mb-4 font-bold uppercase tracking-widest text-xs text-muted-foreground">
+            <AlertTriangle className="w-4 h-4 text-destructive" />
+            Red Flags Detected
+          </div>
+          <ul className="space-y-3">
+            {result.flags.map((flag, index) => (
+              <li key={index} className="flex items-start gap-2 text-sm">
+                <span className="text-destructive mt-1 font-bold">•</span>
+                <span className="text-foreground">{flag}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* Source Info */}
       {result.source && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LinkIcon className="w-5 h-5" />
-              Source Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">{result.source.domain}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Credibility: {result.source.credibility.toUpperCase()}
-                </p>
-              </div>
-              <Badge
-                variant={
-                  result.source.credibility === "high"
-                    ? "success"
-                    : result.source.credibility === "low"
-                    ? "danger"
-                    : "warning"
-                }
-              >
-                {result.source.credibility}
-              </Badge>
+        <div className="bg-background border border-border p-6">
+          <div className="flex items-center gap-2 mb-4 font-bold uppercase tracking-widest text-xs text-muted-foreground">
+            <LinkIcon className="w-4 h-4 text-primary" />
+            Source Information
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-bold text-foreground">{result.source.domain}</p>
+              <p className="text-xs text-muted-foreground mt-1 uppercase font-bold tracking-wider">
+                Credibility: {result.source.credibility}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+            <div className={`px-2 py-1 text-[10px] font-bold uppercase border ${
+              result.source.credibility === "high" ? "border-success text-success" :
+              result.source.credibility === "low" ? "border-destructive text-destructive" :
+              "border-warning text-warning"
+            }`}>
+              {result.source.credibility}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

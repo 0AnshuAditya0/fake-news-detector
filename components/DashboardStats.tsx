@@ -1,70 +1,66 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DashboardStats as StatsType } from "@/lib/types";
-import { BarChart3, AlertTriangle, TrendingUp, Globe } from "lucide-react";
+import { BarChart3, AlertTriangle, TrendingUp, Globe, Search } from "lucide-react";
 
 interface DashboardStatsProps {
   stats: StatsType;
 }
 
 export function DashboardStats({ stats }: DashboardStatsProps) {
+  const items = [
+    {
+      label: "Total Analyses",
+      value: stats.totalAnalyses,
+      sub: "Network Wide",
+      icon: BarChart3,
+      color: "text-primary"
+    },
+    {
+      label: "Fake Detected",
+      value: `${stats.fakeDetected}%`,
+      sub: "Misinformation Rate",
+      icon: AlertTriangle,
+      color: "text-destructive"
+    },
+    {
+      label: "Avg Confidence",
+      value: `${stats.averageConfidence}%`,
+      sub: "System Certainty",
+      icon: TrendingUp,
+      color: "text-success"
+    },
+    {
+      label: "Focus Domain",
+      value: stats.mostAnalyzedDomain,
+      sub: "Hot Spot",
+      icon: Globe,
+      color: "text-primary"
+    }
+  ];
+
   return (
-    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Analyses</CardTitle>
-          <BarChart3 className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.totalAnalyses}</div>
-          <p className="text-xs text-muted-foreground">
-            Articles analyzed to date
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Fake News Detected</CardTitle>
-          <AlertTriangle className="h-4 w-4 text-red-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-red-600">{stats.fakeDetected}%</div>
-          <p className="text-xs text-muted-foreground">
-            Of total analyses
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Avg Confidence</CardTitle>
-          <TrendingUp className="h-4 w-4 text-green-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-green-600">
-            {stats.averageConfidence}%
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 border-l border-t border-border">
+      {items.map((item, i) => (
+        <div key={i} className="p-8 border-r border-b border-border bg-background flex flex-col justify-between aspect-square md:aspect-auto md:h-48">
+          <div className="flex items-start justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground leading-none">
+              {item.label}
+            </span>
+            <item.icon className={`w-4 h-4 ${item.color}`} />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Average confidence score
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Top Domain</CardTitle>
-          <Globe className="h-4 w-4 text-blue-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-xl font-bold truncate">{stats.mostAnalyzedDomain}</div>
-          <p className="text-xs text-muted-foreground">
-            Most analyzed source
-          </p>
-        </CardContent>
-      </Card>
+          
+          <div className="space-y-1">
+            <div className="text-3xl font-bold tracking-tighter truncate">
+              {item.value}
+            </div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 leading-none">
+              {item.sub}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

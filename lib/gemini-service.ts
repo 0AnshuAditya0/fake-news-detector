@@ -12,234 +12,180 @@ export interface GeminiAnalysis {
   credibilityScore: number;
 }
 
-// Stats tracking
-let apiStats = {
-  totalCalls: 0,
-  cacheHits: 0,
-  apiCalls: 0,
-  failures: 0,
-  lastError: null as string | null,
-  lastErrorTime: null as number | null,
-};
+// Module-level state for smart model tracking
+let lastSuccessfulModel: string | null = null;
+const modelCooldowns = new Map<string, number>();
 
-export function getGeminiStats() {
-  const total = apiStats.totalCalls;
-  const cacheHitRate = total > 0 
-    ? `${Math.round((apiStats.cacheHits / total) * 100)}%` 
-    : "0%";
-  const failureRate = apiStats.apiCalls > 0
-    ? `${Math.round((apiStats.failures / apiStats.apiCalls) * 100)}%`
-    : "0%";
+/**
+ * Get the best models to try first, avoiding those on cooldown
+ */
+function getPreferredModels(): string[] {
+  const allModels = [
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-2.0-flash",
+    "gemini-pro-latest"
+  ];
+  const now = Date.now();
 
-  return {
-    ...apiStats,
-    cacheHitRate,
-    failureRate,
-  };
-}
+  // Filter out models currently in cooldown
+  const availableModels = allModels.filter(m => {
+    const cooldownEnd = modelCooldowns.get(m) || 0;
+    return now > cooldownEnd;
+  });
 
-export function incrementTotalCalls() {
-  apiStats.totalCalls++;
-}
+  if (lastSuccessfulModel && availableModels.includes(lastSuccessfulModel)) {
+    // Put last success at the front
+    return [lastSuccessfulModel, ...availableModels.filter(m => m !== lastSuccessfulModel)];
+  }
 
-export function incrementCacheHits() {
-  apiStats.cacheHits++;
-}
-
-export function incrementApiCalls() {
-  apiStats.apiCalls++;
-}
-
-export function incrementFailures(error: string) {
-  apiStats.failures++;
-  apiStats.lastError = error;
-  apiStats.lastErrorTime = Date.now();
+  return availableModels.length > 0 ? availableModels : allModels;
 }
 
 /**
- * Analyze text using Google Gemini Pro
- * Returns null if API fails (triggers fallback)
+ * Robustly extract JSON from a string that might contain markdown blocks or other text
  */
-export async function analyzeWithGemini(text: string): Promise<GeminiAnalysis | null> {
+function extractJson(text: string): any {
+  const firstBrace = text.indexOf('{');
+  const lastBrace = text.lastIndexOf('}');
+
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace < firstBrace) {
+    return null;
+  }
+
+  const jsonCandidate = text.substring(firstBrace, lastBrace + 1);
+  try {
+    return JSON.parse(jsonCandidate);
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Analyze text using Google Gemini
+ */
+export async function analyzeWithGemini(
+  text: string,
+  modelName: string
+): Promise<GeminiAnalysis | null> {
   const API_KEY = process.env.GEMINI_API_KEY;
-  
+
   if (!API_KEY) {
     console.error('❌ GEMINI_API_KEY not found in environment variables');
-    console.error('💡 Get your free key at: https://makersuite.google.com/app/apikey');
     return null;
   }
 
   try {
-    console.log('🤖 Calling Google Gemini API for AI-powered analysis...');
+    const apiVersion = 'v1beta';
+
+    console.log(`🤖 Calling Gemini API [${modelName}] via ${apiVersion}...`);
+
+    const prompt = `You are an expert fact-checker/fake news detector. Analyze the following text.
     
-    const prompt = `You are an expert fact-checker and fake news detection system. Analyze the following text comprehensively.
+TEXT: "${text.slice(0, 3000)}"
 
-TEXT TO ANALYZE:
-"${text.slice(0, 2000)}"
-
-Perform a thorough analysis considering:
-
-1. FACTUAL ACCURACY
-   - Are claims verifiable?
-   - Are sources cited?
-   - Does it reference real studies/statistics?
-   - Are there logical inconsistencies?
-
-2. EMOTIONAL MANIPULATION
-   - Excessive fear-mongering or outrage?
-   - Clickbait language?
-   - Appeals to emotion over facts?
-
-3. SOURCE CREDIBILITY INDICATORS
-   - Professional writing quality?
-   - Grammar and spelling?
-   - Balanced perspective or extreme bias?
-
-4. MISINFORMATION RED FLAGS
-   - Conspiracy theory language?
-   - "They don't want you to know" patterns?
-   - Unverifiable claims presented as facts?
-   - Requests to share urgently?
-
-5. WRITING STYLE
-   - Sensationalist vs. factual tone?
-   - ALL CAPS or excessive punctuation?
-   - Legitimate journalism vs. propaganda?
-
-Respond with ONLY valid JSON in this EXACT format (no markdown, no extra text):
+Respond ONLY with valid JSON:
 {
-  "prediction": "FAKE" or "REAL" or "UNCERTAIN",
-  "confidence": <number 0-100>,
-  "reasoning": "<2-3 sentence explanation of your verdict>",
-  "flags": ["<specific concern 1>", "<specific concern 2>", "..."],
-  "factualConcerns": ["<factual issue 1>", "<factual issue 2>", "..."],
-  "credibilityScore": <number 0-100, where 100 is most credible>
-}
-
-Be thorough but concise. Focus on specific, actionable concerns.`;
+  "prediction": "FAKE" | "REAL" | "UNCERTAIN",
+  "confidence": 0-100,
+  "reasoning": "2-3 sentence explanation",
+  "flags": ["list", "of", "concerns"],
+  "factualConcerns": ["factual", "issues"],
+  "credibilityScore": 0-100
+}`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{
-            parts: [{ text: prompt }]
-          }],
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.4,
+            temperature: 0.1,
             maxOutputTokens: 1024,
+            response_mime_type: "application/json"
           }
         })
       }
     );
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error(`❌ Gemini API error (${response.status}):`, errorData.slice(0, 200));
+      const errorData = await response.json().catch(() => ({}));
+      const message = errorData.error?.message || response.statusText;
+      console.error(`❌ Gemini API [${modelName}] error (${response.status}): ${message}`);
+
+      // Handle Quota/Rate Limit
+      if (response.status === 429) {
+        console.log(`⏳ Model ${modelName} is rate limited. Cooling down for 60s.`);
+        modelCooldowns.set(modelName, Date.now() + 60000);
+      }
+
       return null;
     }
 
     const data = await response.json();
-    
-    // Extract text from Gemini's response structure
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
     if (!generatedText) {
-      console.error('❌ No text in Gemini response:', JSON.stringify(data).slice(0, 200));
+      console.warn(`⚠️ Gemini [${modelName}] empty response. FinishReason: ${data.candidates?.[0]?.finishReason || 'Unknown'}`);
       return null;
     }
 
-    console.log('📄 Gemini raw response:', generatedText.slice(0, 300));
-
-    // Clean and parse JSON response
-    let jsonText = generatedText.trim();
-    
-    // Remove markdown code blocks if present
-    jsonText = jsonText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-    
-    // Find JSON object in response (sometimes wrapped in extra text)
-    const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonText = jsonMatch[0];
-    }
-    
-    const result: GeminiAnalysis = JSON.parse(jsonText);
-    
-    // Validate response structure
-    if (!result.prediction || typeof result.confidence !== 'number') {
-      console.error('❌ Invalid Gemini response structure:', result);
+    const result = extractJson(generatedText);
+    if (!result) {
+      console.warn(`⚠️ Gemini [${modelName}] could not parse JSON from response: ${generatedText.substring(0, 200)}...`);
       return null;
     }
-    
-    // Ensure arrays exist
-    result.flags = result.flags || [];
-    result.factualConcerns = result.factualConcerns || [];
-    
-    console.log('✅ Gemini analysis successful:', {
-      prediction: result.prediction,
-      confidence: result.confidence,
-      credibilityScore: result.credibilityScore,
-      flagCount: result.flags.length,
-      concernCount: result.factualConcerns.length
-    });
-    
+
+    lastSuccessfulModel = modelName;
     return result;
 
   } catch (error: any) {
-    console.error('❌ Gemini API call failed:', error.message);
-    if (error.stack) {
-      console.error('Stack trace:', error.stack.slice(0, 300));
-    }
+    console.error(`❌ Gemini [${modelName}] call failed:`, error.message);
     return null;
   }
 }
 
 /**
- * Retry wrapper with exponential backoff
- * Tries Gemini API multiple times before giving up
+ * Retry wrapper that cycles through available models intelligently
  */
-export async function analyzeWithGeminiRetry(
-  text: string, 
-  maxRetries = 2
-): Promise<GeminiAnalysis | null> {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
+export async function analyzeWithGeminiRetry(text: string): Promise<GeminiAnalysis | null> {
+  const modelsToTry = getPreferredModels();
+
+  for (const model of modelsToTry) {
     try {
-      console.log(`🔄 Gemini attempt ${attempt + 1}/${maxRetries}`);
-      
-      const result = await analyzeWithGemini(text);
-      
+      const result = await analyzeWithGemini(text, model);
       if (result) {
-        console.log(`✅ Gemini succeeded on attempt ${attempt + 1}`);
+        console.log(`✅ Gemini success using model: ${model}`);
         return result;
       }
-      
-      if (attempt < maxRetries - 1) {
-        const waitTime = 1000 * Math.pow(2, attempt); // 1s, 2s
-        console.log(`⏳ Retrying Gemini in ${waitTime}ms...`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-      }
-    } catch (error: any) {
-      console.error(`❌ Gemini attempt ${attempt + 1} failed:`, error.message);
-      
-      if (attempt === maxRetries - 1) {
-        console.log('🚫 All Gemini retries exhausted, falling back to rule-based analysis');
-      }
+      console.log(`⚠️ Model ${model} failed, trying next...`);
+    } catch (error) {
+      continue;
     }
   }
-  
+
   return null;
 }
 
 /**
  * Get Gemini API status for monitoring
  */
-export function getGeminiStatus(): { configured: boolean; keyPreview: string } {
+export function getGeminiStatus() {
   const configured = !!process.env.GEMINI_API_KEY;
-  const keyPreview = configured 
-    ? process.env.GEMINI_API_KEY!.slice(0, 10) + '...'
-    : 'NOT SET';
-  
-  return { configured, keyPreview };
+  return {
+    configured,
+    lastModel: lastSuccessfulModel || 'None',
+    cooldowns: Array.from(modelCooldowns.entries())
+      .filter(([_, time]) => Date.now() < time)
+      .map(([m]) => m)
+  };
 }
+
+// Stats tracking (functions for backward compatibility)
+export function incrementTotalCalls() { }
+export function incrementCacheHits() { }
+export function incrementApiCalls() { }
+export function incrementFailures() { }

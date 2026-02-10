@@ -7,11 +7,10 @@ import { updateGlobalStats } from "./stats-client";
 // Validate API keys and log status
 const geminiStatus = getGeminiStatus();
 if (geminiStatus.configured) {
-  console.log(`🤖 Google Gemini API Key loaded: ${geminiStatus.keyPreview}`);
-  console.log('✨ Primary AI: Google Gemini Pro (90%+ accuracy)');
+  console.log('🤖 Google Gemini API configured');
+  console.log(`✨ Last used model: ${geminiStatus.lastModel}`);
 } else {
   console.warn('⚠️ GEMINI_API_KEY not found - will use rule-based analysis only');
-  console.warn('💡 Get free key at: https://makersuite.google.com/app/apikey');
 }
 
 // Analysis Statistics for monitoring
@@ -21,16 +20,16 @@ export const analysisStats = {
   geminiFailed: 0,
   cacheHits: 0,
   ruleBasedOnly: 0,
-  
+
   getSuccessRate(): string {
     const attempted = this.geminiSuccess + this.geminiFailed;
     return attempted > 0 ? ((this.geminiSuccess / attempted) * 100).toFixed(1) + '%' : 'N/A';
   },
-  
+
   getCacheRate(): string {
     return this.total > 0 ? ((this.cacheHits / this.total) * 100).toFixed(1) + '%' : 'N/A';
   },
-  
+
   getGeminiUsageRate(): string {
     return this.total > 0 ? ((this.geminiSuccess / this.total) * 100).toFixed(1) + '%' : 'N/A';
   }
@@ -52,7 +51,7 @@ let apiStats = {
 export function getApiStats() {
   return {
     ...apiStats,
-    cacheHitRate: apiStats.totalCalls > 0 
+    cacheHitRate: apiStats.totalCalls > 0
       ? ((apiStats.cacheHits / apiStats.totalCalls) * 100).toFixed(1) + '%'
       : '0%',
     failureRate: apiStats.apiCalls > 0
@@ -108,7 +107,7 @@ async function callHuggingFaceAPI(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       console.log(`🤖 HuggingFace API [${modelName}] attempt ${attempt + 1}/${maxRetries}`);
-      
+
       if (!process.env.HUGGINGFACE_API_KEY) {
         throw new Error('API key not configured');
       }
@@ -132,19 +131,19 @@ async function callHuggingFaceAPI(
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`❌ API returned ${response.status}: ${errorText.slice(0, 200)}`);
-        
+
         // If model is loading (503), wait longer and retry
         if (response.status === 503) {
           console.log('⏳ Model is loading (cold start), waiting 5 seconds...');
           await new Promise(resolve => setTimeout(resolve, 5000));
           continue; // Retry immediately
         }
-        
+
         throw new Error(`API returned ${response.status}: ${errorText.slice(0, 100)}`);
       }
 
       const result = await response.json();
-      
+
       // Validate response format
       if (!result || !Array.isArray(result) || result.length === 0) {
         throw new Error('Invalid response format from API');
@@ -156,7 +155,7 @@ async function callHuggingFaceAPI(
     } catch (error: any) {
       const errorMessage = error?.message || 'Unknown error';
       console.error(`❌ Attempt ${attempt + 1}/${maxRetries} failed: ${errorMessage}`);
-      
+
       // Update stats
       apiStats.lastError = errorMessage;
       apiStats.lastErrorTime = Date.now();
@@ -166,7 +165,7 @@ async function callHuggingFaceAPI(
         logDetailedError(error, `HuggingFace API - ${modelName}`);
         throw error;
       }
-      
+
       // Exponential backoff: 2s, 4s, 8s
       const waitTime = 2000 * Math.pow(2, attempt);
       console.log(`⏳ Waiting ${waitTime}ms before retry...`);
@@ -295,11 +294,11 @@ export async function analyzeFakeNews(
   let geminiResult = null;
   let mlScore = 50; // Default neutral
   let apiProvider = 'rule-based';
-  
+
   try {
     console.log('🚀 Attempting Gemini AI analysis...');
     geminiResult = await analyzeWithGeminiRetry(text);
-    
+
     if (geminiResult) {
       analysisStats.geminiSuccess++;
       mlScore = geminiResult.credibilityScore;
@@ -319,7 +318,7 @@ export async function analyzeFakeNews(
   const clickbaitScore = detectClickbait(text, highlights);
   const sentimentScore = analyzeSentiment(text, highlights);
   const biasScore = detectBias(text, highlights);
-  
+
   // Source credibility
   let sourceScore = 50;
   let sourceInfo: SourceInfo | undefined;
@@ -344,70 +343,70 @@ export async function analyzeFakeNews(
   // 4. COMBINE: Gemini + Rule-based scores
   let overallScore: number;
   let signals: any;
-  
+
   if (geminiResult) {
-    // Gemini available: 70% Gemini, 30% rules
+    // Gemini successful: 85% Gemini, 15% rules (rules act as confirmation)
     overallScore = Math.round(
-      mlScore * 0.70 +
-      clickbaitScore * 0.10 +
-      sentimentScore * 0.10 +
-      biasScore * 0.05 +
-      sourceScore * 0.05
+      mlScore * 0.85 +
+      clickbaitScore * 0.05 +
+      sentimentScore * 0.05 +
+      biasScore * 0.03 +
+      sourceScore * 0.02
     );
-    
+
     signals = {
       mlScore,
       ...ruleBasedSignals
     };
-    
-    // Merge flags from Gemini and rules
+
+    // Merge and deduplicate flags
     const ruleFlags = generateRuleBasedFlags(text, ruleBasedSignals);
-    flags = [...new Set([...geminiResult.flags, ...ruleFlags, ...flags])]; // Deduplicate
-    
+    flags = Array.from(new Set([...geminiResult.flags, ...ruleFlags, ...flags]))
+      .filter(f => f.length > 5); // Filter out empty or too-short flags
+
   } else {
-    // Pure rule-based fallback
+    // Rule-based fallback (Gemini failed)
     analysisStats.ruleBasedOnly++;
     overallScore = Math.round(
-      clickbaitScore * 0.35 +
-      sentimentScore * 0.35 +
-      biasScore * 0.20 +
-      sourceScore * 0.10
+      clickbaitScore * 0.30 +
+      sentimentScore * 0.30 +
+      biasScore * 0.25 +
+      sourceScore * 0.15
     );
-    
+
     signals = {
-      mlScore: 50, // Neutral
+      mlScore: 0,
       ...ruleBasedSignals
     };
-    
-    // Generate rule-based flags
+
     const ruleFlags = generateRuleBasedFlags(text, ruleBasedSignals);
-    flags = [...new Set([...ruleFlags, ...flags])];
+    flags = Array.from(new Set([...ruleFlags, ...flags]));
   }
 
   // 5. DETERMINE: Final prediction
   let prediction: Prediction;
   let confidence: number;
-  
-  if (geminiResult && geminiResult.confidence > 80) {
-    // Trust Gemini's high-confidence prediction
+
+  if (geminiResult && geminiResult.confidence > 70) {
+    // High trust in Gemini's logic
     prediction = geminiResult.prediction;
-    confidence = geminiResult.confidence;
+    confidence = Math.min(100, Math.max(geminiResult.confidence, (Math.abs(overallScore - 50) * 2)));
   } else {
-    // Use combined score
-    if (overallScore < 35) {
+    // Balanced prediction
+    if (overallScore < 40) {
       prediction = 'FAKE';
-      confidence = Math.min(100, (50 - overallScore) * 2);
+      confidence = Math.min(100, (50 - overallScore) * 2.5);
     } else if (overallScore > 75) {
       prediction = 'REAL';
-      confidence = Math.min(100, (overallScore - 50) * 2);
+      confidence = Math.min(100, (overallScore - 50) * 2.5);
     } else {
       prediction = 'UNCERTAIN';
-      confidence = 50 + Math.abs(overallScore - 50) / 2;
+      confidence = Math.min(100, 50 + Math.abs(overallScore - 50));
     }
   }
 
   // 6. GENERATE: Explanation
-  const explanation = geminiResult?.reasoning || 
+  const explanation = geminiResult?.reasoning ||
     generateFallbackExplanation(overallScore, flags, prediction);
 
   // 7. BUILD: Result object
@@ -459,34 +458,34 @@ export async function analyzeFakeNews(
  */
 function generateRuleBasedFlags(text: string, signals: any): string[] {
   const flags: string[] = [];
-  
+
   if (signals.clickbaitScore < 40) {
     flags.push('Contains clickbait patterns');
   }
-  
+
   if (signals.sentimentScore < 30) {
     flags.push('Extreme emotional language detected');
   }
-  
+
   if (signals.biasScore < 35) {
     flags.push('Strong ideological bias present');
   }
-  
+
   if (signals.sourceScore < 30) {
     flags.push('Source has questionable credibility');
   }
-  
+
   // ALL CAPS check
   const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
   if (capsRatio > 0.25) {
     flags.push('Excessive use of capital letters');
   }
-  
+
   // Excessive punctuation
   if (/[!?]{3,}/.test(text)) {
     flags.push('Sensationalist punctuation (!!!)');
   }
-  
+
   // Conspiracy language
   const conspiracyPatterns = [
     /they don'?t want you to know/i,
@@ -495,16 +494,16 @@ function generateRuleBasedFlags(text: string, signals: any): string[] {
     /mainstream media (is )?(lying|hiding)/i,
     /the truth about/i
   ];
-  
+
   if (conspiracyPatterns.some(pattern => pattern.test(text))) {
     flags.push('Conspiracy theory language');
   }
-  
+
   // Urgency manipulation
   if (/\b(share|act|sign) (now|immediately|before|urgent)/i.test(text)) {
     flags.push('Urgency manipulation tactics');
   }
-  
+
   return flags;
 }
 

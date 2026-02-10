@@ -29,59 +29,74 @@ export async function scrapeUrl(url: string): Promise<ScrapedContent> {
     // Remove script, style, and nav elements
     $("script, style, nav, header, footer, aside").remove();
 
-    // Extract title
-    const title = $("title").text().trim() || 
-                  $('meta[property="og:title"]').attr("content") || 
-                  $("h1").first().text().trim() || 
-                  "";
+    // Extract metadata
+    const title = $("title").text().trim() ||
+      $('meta[property="og:title"]').attr("content") ||
+      $("h1").first().text().trim() ||
+      "";
+
+    const author = $('meta[name="author"]').attr("content") ||
+      $('.author').first().text().trim() ||
+      "Unknown Source";
+
+    const date = $('meta[property="article:published_time"]').attr("content") ||
+      $('meta[name="publish-date"]').attr("content") ||
+      "";
 
     // Extract main content
     let text = "";
-    
-    // Try common content selectors
+
+    // Improved content selectors
     const contentSelectors = [
       "article",
-      '[role="main"]',
-      "main",
-      ".article-content",
-      ".post-content",
-      ".entry-content",
-      "#content",
+      'main',
+      '.article-body',
+      '.article-content',
+      '.story-content',
+      '.post-content',
+      '.entry-content',
+      '[itemprop="articleBody"]',
+      '#article-content',
     ];
 
     for (const selector of contentSelectors) {
-      const content = $(selector).text().trim();
-      if (content.length > text.length) {
-        text = content;
+      const el = $(selector);
+      if (el.length > 0) {
+        // Remove known junk inside content
+        el.find("script, style, .ad, .social-share, .recommended, footer, nav").remove();
+        const content = el.text().trim();
+        if (content.length > text.length) {
+          text = content;
+        }
       }
     }
 
-    // Fallback to body if no content found
-    if (!text) {
-      text = $("body").text().trim();
+    // Fallback logic
+    if (!text || text.length < 200) {
+      // Try finding the largest paragraph container
+      let bestBlock = "";
+      $("div, section").each((_, el) => {
+        const pCount = $(el).find("p").length;
+        if (pCount > 3) {
+          const t = $(el).text().trim();
+          if (t.length > bestBlock.length) bestBlock = t;
+        }
+      });
+      text = bestBlock || $("body").text().trim();
     }
 
-    // Clean up whitespace
-    text = text.replace(/\s+/g, " ").trim();
+    // Professional cleaning
+    text = text
+      .replace(/\s+/g, " ")
+      .replace(/Share on (Twitter|Facebook|LinkedIn).*/gi, "")
+      .replace(/Read more.*/gi, "")
+      .trim();
 
-    // Limit text length
-    if (text.length > 5000) {
-      text = text.substring(0, 5000);
-    }
-
-    if (!text || text.length < 100) {
-      return {
-        title: "",
-        text: "",
-        domain,
-        success: false,
-        error: "Could not extract sufficient content from the page",
-      };
-    }
+    if (text.length > 5000) text = text.substring(0, 5000);
 
     return {
       title,
-      text: title + ". " + text,
+      text: `${title}. By ${author}. ${text}`,
       domain,
       success: true,
     };

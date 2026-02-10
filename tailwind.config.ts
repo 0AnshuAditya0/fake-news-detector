@@ -24,16 +24,15 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#4F46E5", // Indigo
-          light: "#22D3EE", // Cyan
-          foreground: "#ffffff",
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
-          DEFAULT: "#EF4444",
+          DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
@@ -55,21 +54,6 @@ const config: Config = {
         success: "#10B981",
         warning: "#F59E0B",
         danger: "#EF4444",
-        // Custom theme colors
-        dark: {
-          bg: "#1a1b1c",
-          text: {
-            primary: "#ff5f09",
-            secondary: "#e5e8ee",
-          }
-        },
-        light: {
-          bg: "#e7717d",
-          text: {
-            primary: "#9a1750",
-            secondary: "#000000",
-          }
-        }
       },
       borderRadius: {
         lg: "var(--radius)",

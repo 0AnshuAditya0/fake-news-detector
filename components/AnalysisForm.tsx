@@ -3,14 +3,19 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Link as LinkIcon, FileText, Clipboard } from "lucide-react";
-import { isValidUrl, saveAnalysis, generateId, extractDomain } from "@/lib/utils";
+import { Loader2, Link as LinkIcon, FileText, Clipboard, Search, Image as ImageIcon, Globe, Share2, MessageSquare } from "lucide-react";
+import { isValidUrl, saveAnalysis } from "@/lib/utils";
+
+const SOURCE_TYPES = [
+  { id: "social", label: "Social Media (General)", icon: Share2 },
+  { id: "news", label: "News Article / Website", icon: Globe },
+  { id: "messaging", label: "Messaging App (WhatsApp/Telegram)", icon: MessageSquare },
+  { id: "other", label: "Other Source", icon: Search },
+];
 
 export function AnalysisForm() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("url");
+  const [sourceType, setSourceType] = useState("social");
   const [url, setUrl] = useState("");
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,24 +34,19 @@ export function AnalysisForm() {
     e.preventDefault();
     setError("");
 
-    if (activeTab === "url") {
-      if (!url.trim()) {
-        setError("Please enter a URL");
-        return;
-      }
-      if (!isValidUrl(url)) {
-        setError("Please enter a valid URL (must start with http:// or https://)");
-        return;
-      }
-    } else {
-      if (!text.trim()) {
-        setError("Please enter some text to analyze");
-        return;
-      }
-      if (text.trim().length < 50) {
-        setError("Text must be at least 50 characters long");
-        return;
-      }
+    if (!text.trim() && !url.trim()) {
+      setError("Please provide either an article URL or the content text");
+      return;
+    }
+
+    if (url && !isValidUrl(url)) {
+      setError("Please enter a valid URL (starting with http:// or https://)");
+      return;
+    }
+
+    if (text && text.trim().length < 20) {
+      setError("Text content is too short for reliable analysis");
+      return;
     }
 
     setLoading(true);
@@ -58,8 +58,9 @@ export function AnalysisForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          url: activeTab === "url" ? url : undefined,
-          text: activeTab === "text" ? text : undefined,
+          url: url || undefined,
+          text: text || undefined,
+          sourceType,
         }),
       });
 
@@ -69,10 +70,7 @@ export function AnalysisForm() {
         throw new Error(data.error || "Analysis failed");
       }
 
-      // Save to localStorage and global stats
       await saveAnalysis(data);
-
-      // Navigate to results page
       router.push(`/analyze/${data.id}`);
     } catch (err: any) {
       setError(err.message || "An error occurred during analysis");
@@ -81,109 +79,105 @@ export function AnalysisForm() {
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-lg bg-white dark:bg-slate-900 border-indigo-200 dark:border-cyan-500/30">
-      <CardContent className="pt-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="url" className="flex items-center gap-2">
-              <LinkIcon className="w-4 h-4" />
-              Analyze URL
-            </TabsTrigger>
-            <TabsTrigger value="text" className="flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Analyze Text
-            </TabsTrigger>
-          </TabsList>
-
-          <form onSubmit={handleSubmit}>
-            <TabsContent value="url" className="space-y-4">
-              <div>
-                <label
-                  htmlFor="url"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Enter Article URL
-                </label>
-                <input
-                  id="url"
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://example.com/article"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-md focus:ring-2 focus:ring-indigo-500 dark:focus:ring-cyan-400 focus:border-transparent outline-none transition"
-                  disabled={loading}
-                />
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Enter the URL of a news article or blog post to analyze
-                </p>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="text" className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label
-                    htmlFor="text"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Enter Text to Analyze
-                  </label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handlePasteFromClipboard}
-                    className="flex items-center gap-1"
-                  >
-                    <Clipboard className="w-3 h-3" />
-                    Paste
-                  </Button>
-                </div>
-                <textarea
-                  id="text"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Paste the article text here..."
-                  rows={8}
-                  maxLength={5000}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-md focus:ring-2 focus:ring-indigo-500 dark:focus:ring-cyan-400 focus:border-transparent outline-none transition resize-none"
-                  disabled={loading}
-                />
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Minimum 50 characters, maximum 5000 characters
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {text.length} / 5000
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-
-            {error && (
-              <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 rounded-md">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full mt-6"
-              size="lg"
-              disabled={loading}
+    <div className="w-full bg-background border border-border">
+      <form onSubmit={handleSubmit} className="p-8 space-y-8">
+        {/* Source Selection */}
+        <div className="space-y-4">
+          <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+            Where did you find this?
+          </label>
+          <div className="relative">
+            <select
+              value={sourceType}
+              onChange={(e) => setSourceType(e.target.value)}
+              className="w-full h-12 pl-12 pr-4 bg-background border border-border text-sm font-medium appearance-none cursor-pointer focus:border-primary outline-none transition-colors"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                "Analyze Now"
+              {SOURCE_TYPES.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+              {React.createElement(
+                SOURCE_TYPES.find((t) => t.id === sourceType)?.icon || Search,
+                { className: "w-5 h-5 text-primary" }
               )}
-            </Button>
-          </form>
-        </Tabs>
-      </CardContent>
-    </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* URL Input */}
+        <div className="space-y-4">
+          <div className="relative">
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Paste a URL to analyze article content..."
+              className="w-full h-12 pl-12 pr-4 bg-muted/50 border border-border text-sm placeholder:text-muted-foreground outline-none focus:border-primary transition-colors"
+              disabled={loading}
+            />
+            <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          </div>
+        </div>
+
+        {/* Content Box */}
+        <div className="space-y-4">
+          <div className="relative group">
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Paste article text or controversial claims here..."
+              rows={6}
+              className="w-full p-6 bg-muted/30 border border-border text-sm leading-relaxed placeholder:text-muted-foreground outline-none focus:border-primary transition-colors resize-none"
+              disabled={loading}
+            />
+            {!text && (
+              <button
+                type="button"
+                onClick={handlePasteFromClipboard}
+                className="absolute right-4 bottom-4 px-3 py-1.5 bg-background border border-border text-[10px] font-bold uppercase tracking-widest hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
+              >
+                Paste
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Actions Row */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <button
+            type="button"
+            className="flex items-center justify-center gap-3 h-14 border border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all text-muted-foreground group"
+            disabled={loading}
+          >
+            <ImageIcon className="w-5 h-5 group-hover:text-primary" />
+            <span className="text-xs font-bold uppercase tracking-widest">Upload Screenshot</span>
+          </button>
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Search className="w-5 h-5" />
+                Verify Truth
+              </>
+            )}
+          </Button>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-destructive/5 border border-destructive text-destructive text-[10px] font-bold uppercase tracking-widest">
+            {error}
+          </div>
+        )}
+      </form>
+    </div>
   );
 }

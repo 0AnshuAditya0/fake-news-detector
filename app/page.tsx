@@ -4,182 +4,88 @@ import { Shield, Zap, CheckCircle, BarChart3, Globe, Target } from "lucide-react
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative bg-transparent py-12 sm:py-16 md:py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-8 sm:mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-cyan-500/20 dark:to-blue-500/20 rounded-full mb-4 sm:mb-6 backdrop-blur-sm border-2 border-indigo-300 dark:border-cyan-400 shadow-2xl">
-              <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-600 dark:text-cyan-400 animate-pulse" strokeWidth={2.5} />
-            </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-gray-800 dark:text-white mb-4 sm:mb-6 drop-shadow-lg px-2">
-              Detect Misinformation with{" "}
-              <span className="block mt-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 dark:from-cyan-400 dark:via-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                AI-Powered Analysis
-              </span>
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mb-6 sm:mb-8 font-medium px-4">
-              Powered by <span className="font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent">Google Gemini AI</span> with 90%+ accuracy.
-              Verify news credibility in real-time and protect yourself from misinformation.
-            </p>
-          </div>
+    <div className="min-h-screen bg-background">
+      <header className="container mx-auto px-4 py-8 flex items-center justify-between border-b border-border/50">
+        <div className="flex items-center gap-2">
+          <Shield className="w-8 h-8 text-primary" />
+          <span className="text-xl font-bold tracking-tight text-foreground">Fake News Detector</span>
+        </div>
+      </header>
 
-          {/* Analysis Form */}
+      <section className="container mx-auto px-4 py-16 md:py-24 max-w-5xl">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl md:text-8xl font-black mb-8 tracking-tighter uppercase italic leading-[0.9]">
+            Verify <br />
+            <span className="text-primary">Truth</span> with <br />
+            AI Precision
+          </h1>
+          <p className="text-xs md:text-sm text-muted-foreground max-w-xl mx-auto mb-12 font-bold uppercase tracking-[0.3em] leading-loose">
+            High-fidelity analysis engine for real-time misinformation detection. Built for accuracy.
+          </p>
+          
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-muted text-foreground border border-border">
+              <CheckCircle className="w-4 h-4 text-primary" />
+              90% Accuracy
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-muted text-foreground border border-border">
+              <Zap className="w-4 h-4 text-primary" />
+              Real-time Analysis
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-muted text-foreground border border-border">
+              <BarChart3 className="w-4 h-4 text-primary" />
+              Detailed Reports
+            </div>
+          </div>
+        </div>
+
+        <div className="relative border border-border bg-card">
           <AnalysisForm />
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-12 sm:py-16 md:py-20 px-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm transition-colors duration-200">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-8 sm:mb-12 md:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-3 sm:mb-4 px-2">
-              Powerful Features
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg text-gray-700 dark:text-gray-300 font-medium px-4">
-              Comprehensive analysis using Google Gemini AI and multiple detection methods
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-indigo-200 dark:border-cyan-500/30 bg-white dark:bg-slate-900/80 backdrop-blur-sm hover:shadow-2xl hover:shadow-indigo-500/20 dark:hover:shadow-cyan-500/20 hover:scale-105 hover:border-indigo-400 dark:hover:border-cyan-400 transition-all duration-300">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-cyan-400 dark:to-blue-500 rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Target className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+      <section className="bg-muted/30 py-24 border-y border-border/50">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid md:grid-cols-3 gap-12">
+            <div className="space-y-4">
+              <div className="w-12 h-12 bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Target className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white mb-2 sm:mb-3">
-                AI-Powered Detection
-              </h3>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                Google Gemini AI analyzes factual accuracy, emotional manipulation, and misinformation patterns with 90%+ accuracy.
+              <h3 className="text-xl font-bold text-foreground">Unbiased Detection</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Advanced algorithms identify emotional manipulation and factual inconsistencies.
               </p>
             </div>
-
-            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-indigo-200 dark:border-cyan-500/30 bg-white dark:bg-slate-900/80 backdrop-blur-sm hover:shadow-2xl hover:shadow-indigo-500/20 dark:hover:shadow-cyan-500/20 hover:scale-105 hover:border-indigo-400 dark:hover:border-cyan-400 transition-all duration-300">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-cyan-400 dark:to-blue-500 rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Zap className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+            <div className="space-y-4">
+              <div className="w-12 h-12 bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Globe className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white mb-2 sm:mb-3">
-                Real-Time Analysis
-              </h3>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                Get instant credibility scores and intelligent explanations. Analyze articles by URL or paste text directly.
+              <h3 className="text-xl font-bold text-foreground">Global Sources</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Cross-references information across trusted news sources and domain databases.
               </p>
             </div>
-
-            <div className="group p-6 sm:p-8 rounded-2xl border-2 border-indigo-200 dark:border-cyan-500/30 bg-white dark:bg-slate-900/80 backdrop-blur-sm hover:shadow-2xl hover:shadow-indigo-500/20 dark:hover:shadow-cyan-500/20 hover:scale-105 hover:border-indigo-400 dark:hover:border-cyan-400 transition-all duration-300">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-cyan-400 dark:to-blue-500 rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Globe className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
+            <div className="space-y-4">
+              <div className="w-12 h-12 bg-primary/10 flex items-center justify-center border border-primary/20">
+                <Shield className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white mb-2 sm:mb-3">
-                Source Verification
-              </h3>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                Cross-references sources and assesses domain credibility with comprehensive fact-checking.
+              <h3 className="text-xl font-bold text-foreground">Privacy First</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                Your news searches are private. We don't store personal data or link analysis history.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 sm:py-16 md:py-20 px-4 bg-gradient-to-br from-indigo-100 to-purple-100 dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-700">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 text-center">
-            <div className="p-6 sm:p-8 bg-white/50 dark:bg-slate-800/50 rounded-2xl backdrop-blur-sm border border-indigo-200 dark:border-cyan-500/30">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">5+</div>
-              <div className="text-gray-800 dark:text-white font-bold text-base sm:text-lg">Detection Signals</div>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-                Multiple analysis methods
-              </p>
-            </div>
-
-            <div className="p-6 sm:p-8 bg-white/50 dark:bg-slate-800/50 rounded-2xl backdrop-blur-sm border border-indigo-200 dark:border-cyan-500/30">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">90%+</div>
-              <div className="text-gray-800 dark:text-white font-bold text-base sm:text-lg">Accuracy Rate</div>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-                Using Google Gemini AI
-              </p>
-            </div>
-
-            <div className="p-6 sm:p-8 bg-white/50 dark:bg-slate-800/50 rounded-2xl backdrop-blur-sm border border-indigo-200 dark:border-cyan-500/30">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">&lt;3s</div>
-              <div className="text-gray-800 dark:text-white font-bold text-base sm:text-lg">Avg Response Time</div>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
-                Lightning-fast analysis
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-20 px-4 bg-white dark:bg-slate-900/50">
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-4">
-              How It Works
-            </h2>
-            <p className="text-lg text-gray-700 dark:text-gray-300">
-              Simple, fast, and accurate fake news detection
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-6">
-            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-100 dark:border-cyan-500/20">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-cyan-400 dark:to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-2xl font-bold text-white">1</span>
-              </div>
-              <h3 className="font-bold text-gray-900 dark:text-white mb-2">Submit Content</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Enter a URL or paste text to analyze
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-100 dark:border-cyan-500/20">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-cyan-400 dark:to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-2xl font-bold text-white">2</span>
-              </div>
-              <h3 className="font-bold text-gray-900 dark:text-white mb-2">AI Analysis</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Gemini AI processes and analyzes content
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-100 dark:border-cyan-500/20">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-cyan-400 dark:to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-2xl font-bold text-white">3</span>
-              </div>
-              <h3 className="font-bold text-gray-900 dark:text-white mb-2">Get Results</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Receive credibility score and detailed report
-              </p>
-            </div>
-
-            <div className="text-center p-6 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-100 dark:border-cyan-500/20">
-              <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 dark:from-cyan-400 dark:to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-2xl font-bold text-white">4</span>
-              </div>
-              <h3 className="font-bold text-gray-900 dark:text-white mb-2">Make Decisions</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Use insights to verify information
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-500 dark:to-blue-600 text-white">
-        <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Fight Misinformation?
-          </h2>
-          <p className="text-xl mb-8 opacity-90">
-            Start analyzing news articles and protect yourself from fake news today.
-          </p>
+      <footer className="py-24 border-t border-border/50">
+        <div className="container mx-auto px-4 flex flex-col items-center gap-12">
           <ScrollToTopButton />
+          <p className="text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} Fake News Detector. Simple. Accurate. Free.
+          </p>
         </div>
-      </section>
+      </footer>
     </div>
   );
 }

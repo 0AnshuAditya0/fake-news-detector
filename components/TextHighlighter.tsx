@@ -74,13 +74,13 @@ export function TextHighlighter({ text, highlights }: TextHighlighterProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <mark
-              className={`${colorClass} px-1 rounded cursor-help transition-all hover:opacity-80`}
+              className={`${colorClass} px-0.5 border-b-2`}
             >
               {highlightedText}
             </mark>
           </TooltipTrigger>
           <TooltipContent>
-            <p className="font-semibold">{pos.highlight.reason}</p>
+            <p className="font-bold text-xs uppercase tracking-wider">{pos.highlight.reason}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -94,20 +94,20 @@ export function TextHighlighter({ text, highlights }: TextHighlighterProps) {
     result.push(<span key="text-end">{text.substring(lastIndex)}</span>);
   }
 
-  return <div className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap break-words overflow-x-hidden">{result}</div>;
+  return <div className="text-foreground leading-relaxed whitespace-pre-wrap break-words">{result}</div>;
 }
 
 function getHighlightColor(type: Highlight["type"]): string {
   switch (type) {
     case "fake":
-      return "bg-red-200 text-red-900";
+      return "bg-destructive/10 text-destructive border-destructive";
     case "bias":
-      return "bg-yellow-200 text-yellow-900";
+      return "bg-warning/10 text-warning border-warning";
     case "clickbait":
-      return "bg-indigo-200 text-indigo-900 dark:bg-cyan-200 dark:text-cyan-900";
+      return "bg-primary/10 text-primary border-primary";
     case "sentiment":
-      return "bg-purple-200 text-purple-900";
+      return "bg-violet-500/10 text-violet-500 border-violet-500";
     default:
-      return "bg-gray-200 text-gray-900";
+      return "bg-muted text-foreground border-border";
   }
 }

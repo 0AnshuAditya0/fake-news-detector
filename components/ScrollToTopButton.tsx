@@ -7,12 +7,11 @@ export function ScrollToTopButton() {
   };
 
   return (
-    <a
-      href="#"
-      onClick={handleClick}
-      className="inline-block bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      className="inline-flex items-center justify-center bg-primary text-primary-foreground px-10 h-14 font-bold text-lg hover:bg-primary/90 transition-colors"
     >
-      Get Started Now
-    </a>
+      Start Your Analysis
+    </button>
   );
 }
