@@ -1,12 +1,12 @@
 # Test script for Fake News Detector API (PowerShell)
 # Tests the new fetch-based HuggingFace implementation
 
-Write-Host "🧪 Testing Fake News Detector API" -ForegroundColor Cyan
+Write-Host 'Testing Fake News Detector API' -ForegroundColor Cyan
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Test 1: First Request (Cache Miss)
-Write-Host "📝 Test 1: First Request (Cache Miss)" -ForegroundColor Yellow
+Write-Host 'Test 1: First Request (Cache Miss)' -ForegroundColor Yellow
 Write-Host "Expected: 10-20 seconds (model cold start)"
 Write-Host ""
 
@@ -31,12 +31,12 @@ try {
     Write-Host ""
     
     if ($duration -lt 30) {
-        Write-Host "✅ Test 1 PASSED" -ForegroundColor Green
+        Write-Host 'Test 1 PASSED' -ForegroundColor Green
     } else {
-        Write-Host "⚠️  Test 1 SLOW (but acceptable for cold start)" -ForegroundColor Yellow
+        Write-Host 'Test 1 SLOW (but acceptable for cold start)' -ForegroundColor Yellow
     }
 } catch {
-    Write-Host "❌ Test 1 FAILED: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Test 1 FAILED: $($_.Exception.Message)" -ForegroundColor Red
 }
 
 Write-Host ""
@@ -44,7 +44,7 @@ Write-Host "---"
 Write-Host ""
 
 # Test 2: Cached Request (Cache Hit)
-Write-Host "📝 Test 2: Cached Request (Cache Hit)" -ForegroundColor Yellow
+Write-Host 'Test 2: Cached Request (Cache Hit)' -ForegroundColor Yellow
 Write-Host "Expected: < 1 second (from cache)"
 Write-Host ""
 
@@ -63,12 +63,12 @@ try {
     Write-Host ""
     
     if ($response2.meta.cached -eq $true -and $duration -lt 2) {
-        Write-Host "✅ Test 2 PASSED (Cache working!)" -ForegroundColor Green
+        Write-Host 'Test 2 PASSED (Cache working!)' -ForegroundColor Green
     } else {
-        Write-Host "❌ Test 2 FAILED (Cache not working)" -ForegroundColor Red
+        Write-Host 'Test 2 FAILED (Cache not working)' -ForegroundColor Red
     }
 } catch {
-    Write-Host "❌ Test 2 FAILED: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Test 2 FAILED: $($_.Exception.Message)" -ForegroundColor Red
 }
 
 Write-Host ""
@@ -76,7 +76,7 @@ Write-Host "---"
 Write-Host ""
 
 # Test 3: Different Text (Cache Miss, Warm Model)
-Write-Host "📝 Test 3: Different Text (Cache Miss, Warm Model)" -ForegroundColor Yellow
+Write-Host 'Test 3: Different Text (Cache Miss, Warm Model)' -ForegroundColor Yellow
 Write-Host "Expected: 1-3 seconds (model already loaded)"
 Write-Host ""
 
@@ -100,12 +100,12 @@ try {
     Write-Host ""
     
     if ($duration -lt 5) {
-        Write-Host "✅ Test 3 PASSED (Model is warm!)" -ForegroundColor Green
+        Write-Host 'Test 3 PASSED (Model is warm!)' -ForegroundColor Green
     } else {
-        Write-Host "⚠️  Test 3 SLOW" -ForegroundColor Yellow
+        Write-Host 'Test 3 SLOW' -ForegroundColor Yellow
     }
 } catch {
-    Write-Host "❌ Test 3 FAILED: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Test 3 FAILED: $($_.Exception.Message)" -ForegroundColor Red
 }
 
 Write-Host ""
@@ -113,7 +113,7 @@ Write-Host "---"
 Write-Host ""
 
 # Test 4: Stats API
-Write-Host "📝 Test 4: Stats API" -ForegroundColor Yellow
+Write-Host 'Test 4: Stats API' -ForegroundColor Yellow
 Write-Host ""
 
 try {
@@ -126,12 +126,12 @@ try {
     Write-Host ""
     
     if ($stats.health.status -eq "healthy") {
-        Write-Host "✅ Test 4 PASSED (System healthy!)" -ForegroundColor Green
+        Write-Host 'Test 4 PASSED (System healthy!)' -ForegroundColor Green
     } else {
-        Write-Host "❌ Test 4 FAILED (System degraded)" -ForegroundColor Red
+        Write-Host 'Test 4 FAILED (System degraded)' -ForegroundColor Red
     }
 } catch {
-    Write-Host "❌ Test 4 FAILED: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Test 4 FAILED: $($_.Exception.Message)" -ForegroundColor Red
 }
 
 Write-Host ""
@@ -139,13 +139,13 @@ Write-Host "---"
 Write-Host ""
 
 # Summary
-Write-Host "📊 Test Summary" -ForegroundColor Cyan
+Write-Host 'Test Summary' -ForegroundColor Cyan
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "✅ Tests completed successfully!"
+Write-Host 'Tests completed successfully!'
 Write-Host ""
-Write-Host "📍 View detailed stats at: http://localhost:3000/admin" -ForegroundColor Green
-Write-Host "📍 API documentation: http://localhost:3000/api" -ForegroundColor Green
+Write-Host 'View detailed stats at: http://localhost:3000/admin' -ForegroundColor Green
+Write-Host 'API documentation: http://localhost:3000/api' -ForegroundColor Green
 Write-Host ""
-Write-Host "💡 Tip: Run 'npm run dev' if the server isn't running" -ForegroundColor Yellow
+Write-Host 'Tip: Run npm run dev if the server is not running' -ForegroundColor Yellow
 Write-Host ""

@@ -4,6 +4,7 @@
  */
 
 import { AnalysisResult } from "./types";
+import crypto from "crypto";
 
 interface CacheEntry {
   result: AnalysisResult;
@@ -15,23 +16,35 @@ interface CacheEntry {
 const MAX_CACHE_SIZE = 100;
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
-// In-memory cache storage
-const cache = new Map<string, CacheEntry>();
+// In-memory cache storage persisted across hot-reloads and requests in dev
+// by attaching to globalThis
+const globalForCache = globalThis as unknown as {
+  __FAKE_NEWS_CACHE__?: Map<string, CacheEntry>;
+};
+
+const cache: Map<string, CacheEntry> =
+  globalForCache.__FAKE_NEWS_CACHE__ ||
+  (globalForCache.__FAKE_NEWS_CACHE__ = new Map<string, CacheEntry>());
 
 /**
- * Generate a cache key from text input
- * Uses first 100 characters to create a consistent hash
+ * Generate a cache key from text input (exported for debugging/headers)
  */
 function generateCacheKey(text: string): string {
-  const normalized = text.trim().toLowerCase().substring(0, 100);
-  // Simple hash function for cache key
-  let hash = 0;
-  for (let i = 0; i < normalized.length; i++) {
-    const char = normalized.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return `cache_${Math.abs(hash)}`;
+  // Normalize Unicode, collapse whitespace, lowercase, and trim
+  const normalized = text
+    .normalize("NFKC")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+
+  // Stable hash over the full normalized text
+  const hash = crypto
+    .createHash("sha256")
+    .update(normalized, "utf8")
+    .digest("hex")
+    .slice(0, 16);
+
+  return `cache_${hash}`;
 }
 
 /**
@@ -53,7 +66,11 @@ export function getCachedResult(text: string): AnalysisResult | null {
     return null;
   }
 
-  console.log(`✅ Cache HIT for key: ${key} (age: ${Math.round((now - entry.timestamp) / 1000)}s)`);
+  console.log(
+    `✅ Cache HIT for key: ${key} (age: ${Math.round(
+      (now - entry.timestamp) / 1000
+    )}s)`
+  );
   return entry.result;
 }
 
@@ -76,7 +93,9 @@ export function setCachedResult(text: string, result: AnalysisResult): void {
   };
 
   cache.set(key, entry);
-  console.log(`💾 Cached result for key: ${key} (cache size: ${cache.size}/${MAX_CACHE_SIZE})`);
+  console.log(
+    `💾 Cached result for key: ${key} (cache size: ${cache.size}/${MAX_CACHE_SIZE})`
+  );
 }
 
 /**
