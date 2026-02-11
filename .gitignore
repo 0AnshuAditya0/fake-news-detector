@@ -62,4 +62,7 @@ QUICKSTART.md
 SETUP.md
 SUPABASE_SETUP.md
 
-
+fake_news_model.pkl
+fake_news_pipeline1.pkl 
+vocabulary.json
+WELFake_Dataset.csv
