@@ -230,7 +230,7 @@ const UNRELIABLE_SOURCES = [
   "clickhole.com",
 ];
 
-// Clickbait indicators
+
 const CLICKBAIT_PATTERNS = [
   /you won't believe/i,
   /shocking/i,
@@ -247,7 +247,7 @@ const CLICKBAIT_PATTERNS = [
   /\?!+/,
 ];
 
-// Emotional manipulation keywords
+
 const EMOTIONAL_KEYWORDS = [
   "outrage",
   "scandal",
@@ -264,7 +264,7 @@ const EMOTIONAL_KEYWORDS = [
   "mind-blowing",
 ];
 
-// Bias indicators
+
 const BIAS_KEYWORDS = {
   left: ["liberal", "progressive", "socialist", "leftist", "woke"],
   right: ["conservative", "patriot", "freedom", "traditional", "maga"],
@@ -284,11 +284,11 @@ export async function analyzeFakeNews(
   text: string,
   url?: string
 ): Promise<AnalysisResult> {
-  // Update statistics
+
   analysisStats.total++;
   apiStats.totalCalls++;
 
-  // 1. Check cache first
+
   const cachedResult = getCachedResult(text);
   if (cachedResult) {
     analysisStats.cacheHits++;
@@ -307,9 +307,8 @@ export async function analyzeFakeNews(
   const highlights: Highlight[] = [];
   let flags: string[] = [];
 
-  // 2. PRIMARY: Try Google Gemini AI Analysis
   let geminiResult = null;
-  let mlScore = 50; // Default neutral
+  let mlScore = 50;
   let apiProvider = 'rule-based';
 
   try {
@@ -334,7 +333,7 @@ export async function analyzeFakeNews(
     console.error("🚫 Gemini analysis failed completely:", error.message);
   }
 
-  // 2.5: OPTIONAL: Try Custom XGBoost ML Analysis
+
   let customMLResult = null;
   try {
     console.log("🚀 Attempting Custom XGBoost analysis...");
@@ -346,13 +345,13 @@ export async function analyzeFakeNews(
     console.error("🚫 Custom ML analysis failed:", error);
   }
 
-  // 3. SUPPLEMENT: Rule-based analysis (always runs for additional signals)
+
   console.log("📊 Running rule-based analysis as supplement...");
   const clickbaitScore = detectClickbait(text, highlights);
   const sentimentScore = analyzeSentiment(text, highlights);
   const biasScore = detectBias(text, highlights);
 
-  // Source credibility
+
   let sourceScore = 50;
   let sourceInfo: SourceInfo | undefined;
   if (url) {
@@ -368,17 +367,17 @@ export async function analyzeFakeNews(
     sourceScore,
   };
 
-  // Additional checks
+
   checkAllCaps(text, highlights, flags);
   checkExcessivePunctuation(text, highlights, flags);
   checkUnverifiedClaims(text, highlights, flags);
 
-  // 4. COMBINE: Gemini + Rule-based scores
+
   let overallScore: number;
   let signals: any;
 
   if (geminiResult) {
-    // Gemini successful
+
     overallScore = Math.round(
       mlScore * 0.85 +
       clickbaitScore * 0.05 +
@@ -392,24 +391,24 @@ export async function analyzeFakeNews(
       ...ruleBasedSignals,
     };
 
-    // Merge and deduplicate flags
+
     const ruleFlags = generateRuleBasedFlags(text, ruleBasedSignals);
     flags = Array.from(new Set([...geminiResult.flags, ...ruleFlags, ...flags]))
-      .filter(f => f.length > 5); // Filter out empty or too-short flags
+      .filter(f => f.length > 5);
 
-    // Adjust score based on Custom ML if available
+
     if (customMLResult?.available) {
       const customMLScore = customMLResult.prediction === 'REAL' ? customMLResult.confidence : (100 - customMLResult.confidence);
-      // Gemini 80%, Custom ML 15%, Rules 5%
+
       overallScore = Math.round(mlScore * 0.8 + customMLScore * 0.15 + (clickbaitScore + sentimentScore + biasScore) / 3 * 0.05);
     }
   } else {
-    // Rule-based fallback (Gemini failed)
+
     analysisStats.ruleBasedOnly++;
 
     if (customMLResult?.available) {
       const customMLScore = customMLResult.prediction === 'REAL' ? customMLResult.confidence : (100 - customMLResult.confidence);
-      // Custom ML 60%, Rules 40%
+
       overallScore = Math.round(
         customMLScore * 0.6 +
         (clickbaitScore * 0.15 + sentimentScore * 0.15 + biasScore * 0.1)
@@ -433,16 +432,16 @@ export async function analyzeFakeNews(
     flags = Array.from(new Set([...ruleFlags, ...flags]));
   }
 
-  // 5. DETERMINE: Final prediction
+
   let prediction: Prediction;
   let confidence: number;
 
   if (geminiResult && geminiResult.confidence > 70) {
-    // High trust in Gemini's logic
+
     prediction = geminiResult.prediction;
     confidence = Math.min(100, Math.max(geminiResult.confidence, (Math.abs(overallScore - 50) * 2)));
   } else {
-    // Balanced prediction
+
     if (overallScore < 40) {
       prediction = 'FAKE';
       confidence = Math.min(100, (50 - overallScore) * 2.5);
@@ -455,31 +454,31 @@ export async function analyzeFakeNews(
     }
   }
 
-  // 6. GENERATE: Explanation
+
   const explanation = geminiResult?.reasoning ||
     generateFallbackExplanation(overallScore, flags, prediction);
 
-  // 7. BUILD: Result object
+
   const result: AnalysisResult = {
     id: generateId(),
     prediction,
     confidence: Math.round(confidence),
     overallScore,
     signals,
-    flags: flags.slice(0, 8), // Limit to top 8
+    flags: flags.slice(0, 8),
     highlights: highlights.slice(0, 10),
     explanation,
     source: sourceInfo,
     originalText: text,
     url,
     timestamp: Date.now(),
-    // Additional Gemini-specific fields
+
     ...(geminiResult && {
       factualConcerns: geminiResult.factualConcerns,
       apiProvider,
       mlUsed: true,
     }),
-    // Custom ML fields
+
     ...(customMLResult?.available && {
       customML: {
         prediction: customMLResult.prediction,
@@ -488,7 +487,7 @@ export async function analyzeFakeNews(
     })
   };
 
-  // 8. CACHE: Store result for future requests
+
   setCachedResult(text, result);
   console.log(
     `💾 Result cached | Prediction: ${prediction} (${Math.round(
@@ -496,7 +495,6 @@ export async function analyzeFakeNews(
     )}% confidence)`
   );
 
-  // 9. GLOBAL STATS: Push to aggregated dataset (non-blocking)
   updateGlobalStats({
     id: result.id,
     prediction: result.prediction,
@@ -514,9 +512,7 @@ export async function analyzeFakeNews(
   return result;
 }
 
-/**
- * Generate rule-based flags from analysis signals
- */
+
 function generateRuleBasedFlags(text: string, signals: any): string[] {
   const flags: string[] = [];
 
@@ -564,9 +560,7 @@ function generateRuleBasedFlags(text: string, signals: any): string[] {
   return flags;
 }
 
-/**
- * Generate fallback explanation when Gemini is unavailable
- */
+
 function generateFallbackExplanation(
   score: number,
   flags: string[],
@@ -590,7 +584,7 @@ function detectClickbait(text: string, highlights: Highlight[]): number {
   for (const pattern of CLICKBAIT_PATTERNS) {
     const matches = text.match(pattern);
     if (matches) {
-      deductions += 10; // Reduced from 15
+      deductions += 10;
       highlights.push({
         text: matches[0],
         reason: "Sensationalist language pattern",
@@ -670,11 +664,11 @@ function detectBias(text: string, highlights: Highlight[]): number {
   }
 
   if (biasCount > 8) {
-    score -= 30; // Reduced from 40
+    score -= 30;
   } else if (biasCount > 5) {
-    score -= 20; // Reduced from 25
+    score -= 20;
   } else if (biasCount > 2) {
-    score -= 10; // Reduced from 15
+    score -= 10;
   }
 
   return Math.max(0, score);

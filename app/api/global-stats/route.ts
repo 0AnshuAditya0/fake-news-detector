@@ -3,80 +3,6 @@ import { supabase } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-<<<<<<< HEAD
-=======
-import { promises as fs } from "fs";
-import path from "path";
-
-// Path to store global stats
-const STATS_FILE = path.join("/tmp", "global-stats.json");
-
-interface StoredSignals {
-  mlScore: number;
-  sentimentScore: number;
-  clickbaitScore: number;
-  sourceScore: number;
-  biasScore: number;
-}
-
-interface StoredAnalysis {
-  id: string;
-  prediction: string;
-  confidence: number;
-  overallScore: number;
-  domain: string;
-  timestamp: number;
-  flags: string[];
-  signals: StoredSignals;
-  excerpt: string;
-}
-
-interface GlobalStats {
-  totalAnalyses: number;
-  fakeCount: number;
-  realCount: number;
-  uncertainCount: number;
-  totalConfidence: number;
-  domainCounts: Record<string, number>;
-  analyses: StoredAnalysis[];
-}
-
-// Initialize default stats
-const defaultStats: GlobalStats = {
-  totalAnalyses: 0,
-  fakeCount: 0,
-  realCount: 0,
-  uncertainCount: 0,
-  totalConfidence: 0,
-  domainCounts: {},
-  analyses: [],
-};
-
-// Load stats from file
-async function loadStats(): Promise<GlobalStats> {
-  try {
-    const data = await fs.readFile(STATS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    // If file doesn't exist, return default stats
-    return { ...defaultStats };
-  }
-}
-
-// Save stats to file
-async function saveStats(stats: GlobalStats): Promise<void> {
-  try {
-    // Ensure data directory exists
-    const dataDir = path.dirname(STATS_FILE);
-    await fs.mkdir(dataDir, { recursive: true });
-    
-    // Write stats to file
-    await fs.writeFile(STATS_FILE, JSON.stringify(stats, null, 2), "utf-8");
-  } catch (error) {
-    console.error("Failed to save stats to file:", error);
-  }
-}
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
 
 export async function POST(request: NextRequest) {
   try {
@@ -94,10 +20,9 @@ export async function POST(request: NextRequest) {
       url = ""
     } = body;
 
-    // Insert into Supabase 'analyses' table
     const { error } = await supabase.from('analyses').insert({
       id: (id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) ? id : undefined,
-      user_id: '00000000-0000-0000-0000-000000000000', // Anonymous placeholder
+      user_id: '00000000-0000-0000-0000-000000000000',
       prediction,
       confidence,
       overall_score: overallScore,
@@ -137,8 +62,6 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    // Fetch stats from Supabase
-    // We aggregate data from the 'analyses' table
     const { data: analyses, error } = await supabase
       .from('analyses')
       .select('*')
@@ -171,7 +94,6 @@ export async function GET() {
     const averageConfidence = Math.round(totalConfidence / totalAnalyses);
     const fakePercentage = Math.round((fakeCount / totalAnalyses) * 100);
 
-    // Domain counts
     const domainCounts: Record<string, number> = {};
     analyses.forEach(a => {
       const d = a.source_domain || 'unknown';
@@ -181,7 +103,6 @@ export async function GET() {
     const mostAnalyzedDomain = Object.entries(domainCounts)
       .sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
 
-    // Top flags
     const flagCounts: Record<string, number> = {};
     analyses.forEach(a => {
       if (Array.isArray(a.flags)) {
