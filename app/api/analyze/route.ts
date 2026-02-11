@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-// Ensure Node.js runtime and dynamic execution so in-memory cache persists between requests
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 import { analyzeFakeNews } from "@/lib/ml-service";
@@ -19,10 +19,10 @@ export async function POST(request: NextRequest) {
   let usedCache = false;
 
   try {
-    // Get client IP for rate limiting
+
     const clientIP = getClientIP(request);
 
-    // Check rate limit (10 requests per minute)
+
     const rateLimit = checkRateLimit(clientIP, 10, 60000);
 
     if (!rateLimit.allowed) {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
         { status: 429 }
       );
 
-      // Add rate limit headers
+
       response.headers.set("X-RateLimit-Limit", "10");
       response.headers.set("X-RateLimit-Remaining", "0");
       response.headers.set(
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // Parse request body
+
     const body: AnalysisRequest = await request.json();
 
     if (!body.text && !body.url) {
@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
     let textToAnalyze = body.text || "";
     let url = body.url;
 
-    // If URL is provided, scrape content
     if (url) {
       const scraped = await scrapeUrl(url);
 
@@ -74,7 +73,6 @@ export async function POST(request: NextRequest) {
       textToAnalyze = scraped.text;
     }
 
-    // Validate text length
     if (textToAnalyze.length < 50) {
       return NextResponse.json(
         { error: "Text is too short for analysis (minimum 50 characters)" },
@@ -86,10 +84,8 @@ export async function POST(request: NextRequest) {
       textToAnalyze = textToAnalyze.substring(0, 5000);
     }
 
-    // Track total calls
     incrementTotalCalls();
 
-    // Fast path: return cached result immediately if present
     const cachedCheck = getCachedResult(textToAnalyze);
     if (cachedCheck) {
       usedCache = true;
@@ -121,13 +117,11 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    // Not cached: perform analysis
     incrementApiCalls();
     const result = await analyzeFakeNews(textToAnalyze, url);
 
     const processingTime = Date.now() - startTime;
 
-    // Return with cache and performance headers
     const response = NextResponse.json(
       {
         ...result,
@@ -140,12 +134,10 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Performance headers
     response.headers.set("X-Used-Cache", usedCache ? "true" : "false");
     response.headers.set("X-Processing-Time", `${processingTime}ms`);
     response.headers.set("X-Cache-Status", usedCache ? "HIT" : "MISS");
 
-    // Rate limit headers
     response.headers.set("X-RateLimit-Limit", "10");
     response.headers.set(
       "X-RateLimit-Remaining",
@@ -161,7 +153,6 @@ export async function POST(request: NextRequest) {
     console.error("❌ Analysis API error:", error);
     const processingTime = Date.now() - startTime;
 
-    // Return graceful fallback - never crash the API
     const response = NextResponse.json(
       {
         prediction: "UNCERTAIN",
@@ -186,7 +177,7 @@ export async function POST(request: NextRequest) {
           fallback: true,
         },
       },
-      { status: 200 } // Return 200 so frontend doesn't break
+      { status: 200 }
     );
 
     response.headers.set("X-Processing-Time", `${processingTime}ms`);

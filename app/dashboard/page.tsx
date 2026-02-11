@@ -12,7 +12,6 @@ import { BarChart3, Globe, User, ShieldCheck } from "lucide-react";
 export default function DashboardPage() {
   const [view, setView] = useState<"global" | "personal">("global");
   
-  // Load saved preference
   useEffect(() => {
     const savedView = localStorage.getItem("dashboard-view");
     if (savedView === "global" || savedView === "personal") {
@@ -20,7 +19,6 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Save preference
   useEffect(() => {
     localStorage.setItem("dashboard-view", view);
   }, [view]);

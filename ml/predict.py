@@ -9,16 +9,16 @@ MODEL_PATH = 'public/models/fake_news_model.pkl'
 
 def predict(text):
     try:
-        # Load model
+        
         with open(MODEL_PATH, 'rb') as f:
             model = pickle.load(f)
         
-        # Predict
+
         prediction = model.predict([text])[0]
         probabilities = model.predict_proba([text])[0]
         confidence = max(probabilities)
         
-        # Return JSON
+        
         result = {
             'prediction': int(prediction),
             'confidence': float(confidence)

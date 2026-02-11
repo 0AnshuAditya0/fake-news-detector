@@ -1,7 +1,4 @@
-/**
- * Rate Limiting for Gemini API
- * Limits: 10 requests per minute per IP
- */
+
 
 interface RateLimitEntry {
   count: number;
@@ -10,7 +7,6 @@ interface RateLimitEntry {
 
 const rateLimitMap = new Map<string, RateLimitEntry>();
 
-// Clean up old entries every 5 minutes
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitMap.entries()) {
@@ -41,11 +37,10 @@ export function checkRateLimit(
   const now = Date.now();
   const entry = rateLimitMap.get(identifier);
 
-  // No entry or expired - create new
   if (!entry || now > entry.resetTime) {
     const resetTime = now + windowMs;
     rateLimitMap.set(identifier, { count: 1, resetTime });
-    
+
     return {
       allowed: true,
       remaining: limit - 1,
@@ -53,10 +48,9 @@ export function checkRateLimit(
     };
   }
 
-  // Within window - check limit
   if (entry.count < limit) {
     entry.count++;
-    
+
     return {
       allowed: true,
       remaining: limit - entry.count,
@@ -64,9 +58,8 @@ export function checkRateLimit(
     };
   }
 
-  // Rate limit exceeded
   const retryAfter = Math.ceil((entry.resetTime - now) / 1000);
-  
+
   return {
     allowed: false,
     remaining: 0,
@@ -75,11 +68,9 @@ export function checkRateLimit(
   };
 }
 
-/**
- * Get client IP from request headers
- */
+
 export function getClientIP(request: Request): string {
-  // Check various headers for IP
+
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
     return forwarded.split(',')[0].trim();
@@ -90,19 +81,17 @@ export function getClientIP(request: Request): string {
     return realIP;
   }
 
-  // Fallback to a default (for development)
+
   return 'unknown';
 }
 
-/**
- * Get rate limit stats for monitoring
- */
+
 export function getRateLimitStats() {
   const now = Date.now();
   const active = Array.from(rateLimitMap.entries())
     .filter(([_, entry]) => now <= entry.resetTime)
     .map(([ip, entry]) => ({
-      ip: ip.slice(0, 10) + '...', // Anonymize
+      ip: ip.slice(0, 10) + '...',
       count: entry.count,
       resetIn: Math.ceil((entry.resetTime - now) / 1000),
     }));
@@ -110,6 +99,6 @@ export function getRateLimitStats() {
   return {
     totalTracked: rateLimitMap.size,
     activeClients: active.length,
-    clients: active.slice(0, 10), // Top 10
+    clients: active.slice(0, 10),
   };
 }

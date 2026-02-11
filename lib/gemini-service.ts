@@ -27,16 +27,14 @@ function getPreferredModels(): string[] {
   });
 
   if (lastSuccessfulModel && availableModels.includes(lastSuccessfulModel)) {
-    // Put last success at the front
+
     return [lastSuccessfulModel, ...availableModels.filter(m => m !== lastSuccessfulModel)];
   }
 
   return availableModels.length > 0 ? availableModels : allModels;
 }
 
-/**
- * Robustly extract JSON from a string that might contain markdown blocks or other text
- */
+
 function extractJson(text: string): any {
   const firstBrace = text.indexOf('{');
   const lastBrace = text.lastIndexOf('}');
@@ -53,9 +51,7 @@ function extractJson(text: string): any {
   }
 }
 
-/**
- * Analyze text using Google Gemini
- */
+
 export async function analyzeWithGemini(
   text: string,
   modelName: string
@@ -90,7 +86,7 @@ Respond with ONLY valid JSON (no markdown, no backticks):
           generationConfig: {
             temperature: 0.1,
             maxOutputTokens: 1024,
-            // REMOVE: response_mime_type: "application/json"
+
           }
         })
       }
@@ -101,7 +97,7 @@ Respond with ONLY valid JSON (no markdown, no backticks):
       const message = errorData.error?.message || response.statusText;
       console.error(`❌ Gemini API [${modelName}] error (${response.status}): ${message}`);
 
-      // Handle Quota/Rate Limit
+
       if (response.status === 429) {
         console.log(`⏳ Model ${modelName} is rate limited. Cooling down for 60s.`);
         modelCooldowns.set(modelName, Date.now() + 60000);
@@ -133,9 +129,7 @@ Respond with ONLY valid JSON (no markdown, no backticks):
   }
 }
 
-/**
- * Retry wrapper that cycles through available models intelligently
- */
+
 export async function analyzeWithGeminiRetry(text: string): Promise<GeminiAnalysis | null> {
   const modelsToTry = getPreferredModels();
 
@@ -155,9 +149,7 @@ export async function analyzeWithGeminiRetry(text: string): Promise<GeminiAnalys
   return null;
 }
 
-/**
- * Get Gemini API status for monitoring
- */
+
 export function getGeminiStatus() {
   const configured = !!process.env.GEMINI_API_KEY;
   return {
@@ -169,7 +161,6 @@ export function getGeminiStatus() {
   };
 }
 
-// Stats tracking (functions for backward compatibility)
 export function incrementTotalCalls() { }
 export function incrementCacheHits() { }
 export function incrementApiCalls() { }

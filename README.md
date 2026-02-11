@@ -7,22 +7,22 @@ An AI-powered web application built with Next.js 14 that detects misinformation 
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.3-38bdf8)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## 🌟 Features
+## Features
 
 ### Core Functionality
-- **🤖 AI-Powered Analysis**: Uses HuggingFace's RoBERTa model for fake news classification
-- **⚡ Intelligent Caching**: 60x faster responses with LRU cache (< 50ms for cached requests)
-- **🔄 Automatic Retry Logic**: 3 attempts with exponential backoff for API reliability
-- **📊 Multi-Signal Detection**: Combines 5 different analysis methods:
+- ** AI-Powered Analysis**: Uses HuggingFace's RoBERTa model for fake news classification
+- ** Intelligent Caching**: 60x faster responses with LRU cache (< 50ms for cached requests)
+- ** Automatic Retry Logic**: 3 attempts with exponential backoff for API reliability
+- ** Multi-Signal Detection**: Combines 5 different analysis methods:
   - Machine Learning prediction
   - Sentiment analysis (emotional manipulation detection)
   - Clickbait pattern recognition
   - Source credibility verification
   - Political bias detection
-- **🔍 URL & Text Analysis**: Analyze articles by URL or paste text directly
-- **📈 Real-Time Results**: Get instant credibility scores (0-100) with detailed explanations
-- **💾 Local Storage**: Automatic saving of analysis history
-- **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- ** URL & Text Analysis**: Analyze articles by URL or paste text directly
+- ** Real-Time Results**: Get instant credibility scores (0-100) with detailed explanations
+- ** Local Storage**: Automatic saving of analysis history
+- ** Responsive Design**: Works seamlessly on desktop, tablet, and mobile
 
 ### Advanced Features
 - **Text Highlighting**: Visual indicators for suspicious phrases with hover tooltips
@@ -34,7 +34,7 @@ An AI-powered web application built with Next.js 14 that detects misinformation 
 - **Rate Limiting**: Built-in API rate limiting (10 requests/minute)
 - **Performance Monitoring**: Track cache hit rates, API failures, and response times
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+ and npm/yarn
@@ -79,7 +79,7 @@ yarn dev
 
 Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 fake-news/
@@ -114,7 +114,7 @@ fake-news/
 └── README.md
 ```
 
-## 🔧 Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Next.js 14**: React framework with App Router
@@ -134,7 +134,7 @@ fake-news/
 - **RoBERTa Model**: `hamzab/roberta-fake-news-classification`
 - **Rule-Based Detection**: Custom algorithms for clickbait, sentiment, and bias
 
-## 📊 How It Works
+## How It Works
 
 ### Analysis Pipeline
 
@@ -174,7 +174,7 @@ fake-news/
 - **40-69**: Medium Risk (UNCERTAIN)
 - **70-100**: Low Risk (likely REAL)
 
-## 🎨 UI Components
+## UI Components
 
 ### CredibilityMeter
 Animated circular gauge with color-coded risk levels:
@@ -196,7 +196,7 @@ Tabbed interface for URL and text input with:
 - Paste from clipboard
 - Loading states
 
-## 🔐 Security & Best Practices
+## Security & Best Practices
 
 - **Rate Limiting**: 10 requests per minute per IP
 - **Input Validation**: URL and text sanitization
@@ -204,7 +204,7 @@ Tabbed interface for URL and text input with:
 - **API Key Security**: Environment variables only
 - **Client-Side Storage**: localStorage for demo purposes
 
-## 📈 Analytics Dashboard
+## Analytics Dashboard
 
 Track your analysis history with:
 - Total analyses count
@@ -215,7 +215,7 @@ Track your analysis history with:
 - Recent analyses table
 - Top red flags
 
-## 🚢 Deployment
+## Deployment
 
 ### Vercel (Recommended)
 
@@ -234,7 +234,7 @@ The app can be deployed to any platform supporting Next.js:
 - AWS Amplify
 - DigitalOcean App Platform
 
-## 🧪 Testing
+## Testing
 
 ### Manual Testing Checklist
 
@@ -257,7 +257,7 @@ The app can be deployed to any platform supporting Next.js:
 **Test with caution - for testing only:**
 - Search for known satirical sites
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 
@@ -267,22 +267,22 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **HuggingFace** for providing the ML model API
 - **shadcn/ui** for beautiful React components
 - **Next.js team** for the amazing framework
 - **Vercel** for hosting platform
 
-## 📧 Contact
+## Contact
 
 For questions or feedback, please open an issue on GitHub.
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - [ ] User authentication and accounts
 - [ ] Chrome extension for in-browser analysis
@@ -294,7 +294,7 @@ For questions or feedback, please open an issue on GitHub.
 - [ ] Social media post analysis
 - [ ] Browser history scanning
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This tool is designed to assist in identifying potential misinformation but should not be the sole source of truth. Always:
 - Verify important information with multiple trusted sources
@@ -304,4 +304,3 @@ This tool is designed to assist in identifying potential misinformation but shou
 
 ---
 
-**Built with ❤️ using Next.js 14, TypeScript, and AI**
