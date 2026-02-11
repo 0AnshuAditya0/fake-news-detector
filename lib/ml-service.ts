@@ -3,24 +3,15 @@ import { generateId, extractDomain } from "./utils";
 import { getCachedResult, setCachedResult } from "@/lib/cache";
 import { analyzeWithGeminiRetry, getGeminiStatus } from "./gemini-service";
 import { updateGlobalStats } from "./stats-client";
+import { predictWithCustomML } from "./ml-processor";
 
 // Validate API keys and log status
 const geminiStatus = getGeminiStatus();
 if (geminiStatus.configured) {
-<<<<<<< HEAD
   console.log('🤖 Google Gemini API configured');
   console.log(`✨ Last used model: ${geminiStatus.lastModel}`);
 } else {
   console.warn('⚠️ GEMINI_API_KEY not found - will use rule-based analysis only');
-=======
-  console.log(`🤖 Google Gemini API Key loaded: ${geminiStatus.keyPreview}`);
-  console.log("✨ Primary AI: Google Gemini Pro (90%+ accuracy)");
-} else {
-  console.warn(
-    "⚠️ GEMINI_API_KEY not found - will use rule-based analysis only"
-  );
-  console.warn("💡 Get free key at: https://makersuite.google.com/app/apikey");
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
 }
 
 // Analysis Statistics for monitoring
@@ -67,23 +58,12 @@ let apiStats = {
 export function getApiStats() {
   return {
     ...apiStats,
-<<<<<<< HEAD
     cacheHitRate: apiStats.totalCalls > 0
       ? ((apiStats.cacheHits / apiStats.totalCalls) * 100).toFixed(1) + '%'
       : '0%',
     failureRate: apiStats.apiCalls > 0
       ? ((apiStats.failures / apiStats.apiCalls) * 100).toFixed(1) + '%'
       : '0%',
-=======
-    cacheHitRate:
-      apiStats.totalCalls > 0
-        ? ((apiStats.cacheHits / apiStats.totalCalls) * 100).toFixed(1) + "%"
-        : "0%",
-    failureRate:
-      apiStats.apiCalls > 0
-        ? ((apiStats.failures / apiStats.apiCalls) * 100).toFixed(1) + "%"
-        : "0%",
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
   };
 }
 
@@ -133,13 +113,7 @@ async function callHuggingFaceAPI(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-<<<<<<< HEAD
       console.log(`🤖 HuggingFace API [${modelName}] attempt ${attempt + 1}/${maxRetries}`);
-=======
-      console.log(
-        `🤖 HuggingFace API [${modelName}] attempt ${attempt + 1}/${maxRetries}`
-      );
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
 
       if (!process.env.HUGGINGFACE_API_KEY) {
         throw new Error("API key not configured");
@@ -163,13 +137,7 @@ async function callHuggingFaceAPI(
       // Check response status
       if (!response.ok) {
         const errorText = await response.text();
-<<<<<<< HEAD
         console.error(`❌ API returned ${response.status}: ${errorText.slice(0, 200)}`);
-=======
-        console.error(
-          `❌ API returned ${response.status}: ${errorText.slice(0, 200)}`
-        );
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
 
         // If model is loading (503), wait longer and retry
         if (response.status === 503) {
@@ -178,13 +146,7 @@ async function callHuggingFaceAPI(
           continue; // Retry immediately
         }
 
-<<<<<<< HEAD
         throw new Error(`API returned ${response.status}: ${errorText.slice(0, 100)}`);
-=======
-        throw new Error(
-          `API returned ${response.status}: ${errorText.slice(0, 100)}`
-        );
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
       }
 
       const result = await response.json();
@@ -200,15 +162,8 @@ async function callHuggingFaceAPI(
       );
       return result;
     } catch (error: any) {
-<<<<<<< HEAD
       const errorMessage = error?.message || 'Unknown error';
       console.error(`❌ Attempt ${attempt + 1}/${maxRetries} failed: ${errorMessage}`);
-=======
-      const errorMessage = error?.message || "Unknown error";
-      console.error(
-        `❌ Attempt ${attempt + 1}/${maxRetries} failed: ${errorMessage}`
-      );
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
 
       // Update stats
       apiStats.lastError = errorMessage;
@@ -346,9 +301,7 @@ export async function analyzeFakeNews(
 
   console.log(`❌ Cache MISS - performing fresh analysis`);
   console.log(
-    `📊 Stats: ${
-      analysisStats.total
-    } total | Gemini: ${analysisStats.getGeminiUsageRate()} | Cache: ${analysisStats.getCacheRate()}`
+    `📊 Stats: ${analysisStats.total} total | Gemini: ${analysisStats.getGeminiUsageRate()} | Cache: ${analysisStats.getCacheRate()}`
   );
 
   const highlights: Highlight[] = [];
@@ -357,11 +310,7 @@ export async function analyzeFakeNews(
   // 2. PRIMARY: Try Google Gemini AI Analysis
   let geminiResult = null;
   let mlScore = 50; // Default neutral
-<<<<<<< HEAD
   let apiProvider = 'rule-based';
-=======
-  let apiProvider = "rule-based";
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
 
   try {
     console.log("🚀 Attempting Gemini AI analysis...");
@@ -383,6 +332,18 @@ export async function analyzeFakeNews(
   } catch (error: any) {
     analysisStats.geminiFailed++;
     console.error("🚫 Gemini analysis failed completely:", error.message);
+  }
+
+  // 2.5: OPTIONAL: Try Custom XGBoost ML Analysis
+  let customMLResult = null;
+  try {
+    console.log("🚀 Attempting Custom XGBoost analysis...");
+    customMLResult = await predictWithCustomML(text);
+    if (customMLResult.available) {
+      console.log(`✅ Custom ML success! Prediction: ${customMLResult.prediction} (${customMLResult.confidence}% confidence)`);
+    }
+  } catch (error) {
+    console.error("🚫 Custom ML analysis failed:", error);
   }
 
   // 3. SUPPLEMENT: Rule-based analysis (always runs for additional signals)
@@ -417,21 +378,13 @@ export async function analyzeFakeNews(
   let signals: any;
 
   if (geminiResult) {
-    // Gemini successful: 85% Gemini, 15% rules (rules act as confirmation)
+    // Gemini successful
     overallScore = Math.round(
-<<<<<<< HEAD
       mlScore * 0.85 +
       clickbaitScore * 0.05 +
       sentimentScore * 0.05 +
       biasScore * 0.03 +
       sourceScore * 0.02
-=======
-      mlScore * 0.7 +
-        clickbaitScore * 0.1 +
-        sentimentScore * 0.1 +
-        biasScore * 0.05 +
-        sourceScore * 0.05
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
     );
 
     signals = {
@@ -439,47 +392,43 @@ export async function analyzeFakeNews(
       ...ruleBasedSignals,
     };
 
-<<<<<<< HEAD
     // Merge and deduplicate flags
     const ruleFlags = generateRuleBasedFlags(text, ruleBasedSignals);
     flags = Array.from(new Set([...geminiResult.flags, ...ruleFlags, ...flags]))
       .filter(f => f.length > 5); // Filter out empty or too-short flags
 
-=======
-    // Merge flags from Gemini and rules
-    const ruleFlags = generateRuleBasedFlags(text, ruleBasedSignals);
-    flags = [...new Set([...geminiResult.flags, ...ruleFlags, ...flags])]; // Deduplicate
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
+    // Adjust score based on Custom ML if available
+    if (customMLResult?.available) {
+      const customMLScore = customMLResult.prediction === 'REAL' ? customMLResult.confidence : (100 - customMLResult.confidence);
+      // Gemini 80%, Custom ML 15%, Rules 5%
+      overallScore = Math.round(mlScore * 0.8 + customMLScore * 0.15 + (clickbaitScore + sentimentScore + biasScore) / 3 * 0.05);
+    }
   } else {
     // Rule-based fallback (Gemini failed)
     analysisStats.ruleBasedOnly++;
-    overallScore = Math.round(
-<<<<<<< HEAD
-      clickbaitScore * 0.30 +
-      sentimentScore * 0.30 +
-      biasScore * 0.25 +
-      sourceScore * 0.15
-    );
 
-    signals = {
-      mlScore: 0,
-      ...ruleBasedSignals
-    };
-
-=======
-      clickbaitScore * 0.35 +
+    if (customMLResult?.available) {
+      const customMLScore = customMLResult.prediction === 'REAL' ? customMLResult.confidence : (100 - customMLResult.confidence);
+      // Custom ML 60%, Rules 40%
+      overallScore = Math.round(
+        customMLScore * 0.6 +
+        (clickbaitScore * 0.15 + sentimentScore * 0.15 + biasScore * 0.1)
+      );
+      apiProvider = "custom-ml";
+    } else {
+      overallScore = Math.round(
+        clickbaitScore * 0.35 +
         sentimentScore * 0.35 +
         biasScore * 0.2 +
         sourceScore * 0.1
-    );
+      );
+    }
 
     signals = {
-      mlScore: 50, // Neutral
+      mlScore: customMLResult?.available ? (customMLResult.prediction === 'REAL' ? customMLResult.confidence : (100 - customMLResult.confidence)) : 50,
       ...ruleBasedSignals,
     };
 
-    // Generate rule-based flags
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
     const ruleFlags = generateRuleBasedFlags(text, ruleBasedSignals);
     flags = Array.from(new Set([...ruleFlags, ...flags]));
   }
@@ -488,17 +437,11 @@ export async function analyzeFakeNews(
   let prediction: Prediction;
   let confidence: number;
 
-<<<<<<< HEAD
   if (geminiResult && geminiResult.confidence > 70) {
     // High trust in Gemini's logic
-=======
-  if (geminiResult && geminiResult.confidence > 80) {
-    // Trust Gemini's high-confidence prediction
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
     prediction = geminiResult.prediction;
     confidence = Math.min(100, Math.max(geminiResult.confidence, (Math.abs(overallScore - 50) * 2)));
   } else {
-<<<<<<< HEAD
     // Balanced prediction
     if (overallScore < 40) {
       prediction = 'FAKE';
@@ -509,28 +452,11 @@ export async function analyzeFakeNews(
     } else {
       prediction = 'UNCERTAIN';
       confidence = Math.min(100, 50 + Math.abs(overallScore - 50));
-=======
-    // Use combined score
-    if (overallScore < 35) {
-      prediction = "FAKE";
-      confidence = Math.min(100, (50 - overallScore) * 2);
-    } else if (overallScore > 75) {
-      prediction = "REAL";
-      confidence = Math.min(100, (overallScore - 50) * 2);
-    } else {
-      prediction = "UNCERTAIN";
-      confidence = 50 + Math.abs(overallScore - 50) / 2;
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
     }
   }
 
   // 6. GENERATE: Explanation
-<<<<<<< HEAD
   const explanation = geminiResult?.reasoning ||
-=======
-  const explanation =
-    geminiResult?.reasoning ||
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
     generateFallbackExplanation(overallScore, flags, prediction);
 
   // 7. BUILD: Result object
@@ -553,6 +479,13 @@ export async function analyzeFakeNews(
       apiProvider,
       mlUsed: true,
     }),
+    // Custom ML fields
+    ...(customMLResult?.available && {
+      customML: {
+        prediction: customMLResult.prediction,
+        confidence: customMLResult.confidence
+      }
+    })
   };
 
   // 8. CACHE: Store result for future requests
@@ -603,18 +536,15 @@ function generateRuleBasedFlags(text: string, signals: any): string[] {
     flags.push("Source has questionable credibility");
   }
 
-  // ALL CAPS check
   const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
   if (capsRatio > 0.25) {
     flags.push("Excessive use of capital letters");
   }
 
-  // Excessive punctuation
   if (/[!?]{3,}/.test(text)) {
     flags.push("Sensationalist punctuation (!!!)");
   }
 
-  // Conspiracy language
   const conspiracyPatterns = [
     /they don'?t want you to know/i,
     /wake up/i,
@@ -623,16 +553,10 @@ function generateRuleBasedFlags(text: string, signals: any): string[] {
     /the truth about/i,
   ];
 
-<<<<<<< HEAD
   if (conspiracyPatterns.some(pattern => pattern.test(text))) {
     flags.push('Conspiracy theory language');
-=======
-  if (conspiracyPatterns.some((pattern) => pattern.test(text))) {
-    flags.push("Conspiracy theory language");
->>>>>>> 819ae402c8682fee5ae696d21fc21286a8362d85
   }
 
-  // Urgency manipulation
   if (/\b(share|act|sign) (now|immediately|before|urgent)/i.test(text)) {
     flags.push("Urgency manipulation tactics");
   }
@@ -666,16 +590,15 @@ function detectClickbait(text: string, highlights: Highlight[]): number {
   for (const pattern of CLICKBAIT_PATTERNS) {
     const matches = text.match(pattern);
     if (matches) {
-      deductions += 15;
+      deductions += 10; // Reduced from 15
       highlights.push({
         text: matches[0],
-        reason: "Clickbait pattern detected",
+        reason: "Sensationalist language pattern",
         type: "clickbait",
       });
     }
   }
 
-  // Check for numbers in headlines (e.g., "7 things...")
   const numberPattern = /\b\d+\s+(things|ways|reasons|facts|tips)\b/gi;
   const numberMatches = text.match(numberPattern);
   if (numberMatches) {
@@ -696,8 +619,6 @@ function analyzeSentiment(text: string, highlights: Highlight[]): number {
   let score = 100;
   let emotionalCount = 0;
 
-  const lowerText = text.toLowerCase();
-
   for (const keyword of EMOTIONAL_KEYWORDS) {
     const regex = new RegExp(`\\b${keyword}\\b`, "gi");
     const matches = text.match(regex);
@@ -713,7 +634,6 @@ function analyzeSentiment(text: string, highlights: Highlight[]): number {
     }
   }
 
-  // Deduct points based on emotional keyword density
   const wordCount = text.split(/\s+/).length;
   const emotionalDensity = (emotionalCount / wordCount) * 100;
 
@@ -732,9 +652,6 @@ function detectBias(text: string, highlights: Highlight[]): number {
   let score = 100;
   let biasCount = 0;
 
-  const lowerText = text.toLowerCase();
-
-  // Check for political bias
   for (const [side, keywords] of Object.entries(BIAS_KEYWORDS)) {
     for (const keyword of keywords) {
       const regex = new RegExp(`\\b${keyword}\\b`, "gi");
@@ -752,13 +669,12 @@ function detectBias(text: string, highlights: Highlight[]): number {
     }
   }
 
-  // Deduct based on bias keyword count
-  if (biasCount > 5) {
-    score -= 40;
-  } else if (biasCount > 3) {
-    score -= 25;
-  } else if (biasCount > 1) {
-    score -= 15;
+  if (biasCount > 8) {
+    score -= 30; // Reduced from 40
+  } else if (biasCount > 5) {
+    score -= 20; // Reduced from 25
+  } else if (biasCount > 2) {
+    score -= 10; // Reduced from 15
   }
 
   return Math.max(0, score);
@@ -838,6 +754,7 @@ function checkUnverifiedClaims(
     /allegedly/i,
     /rumors suggest/i,
     /it is believed/i,
+    /it is reported/i,
   ];
 
   let unverifiedCount = 0;
@@ -851,40 +768,4 @@ function checkUnverifiedClaims(
   if (unverifiedCount > 3) {
     flags.push("Multiple unverified claims");
   }
-}
-
-function generateExplanation(
-  prediction: Prediction,
-  score: number,
-  flags: string[],
-  sourceInfo?: SourceInfo
-): string {
-  let explanation = "";
-
-  if (prediction === "FAKE") {
-    explanation = `This content has been classified as likely FAKE NEWS with a credibility score of ${score}/100. `;
-  } else if (prediction === "REAL") {
-    explanation = `This content appears to be LEGITIMATE with a credibility score of ${score}/100. `;
-  } else {
-    explanation = `This content is UNCERTAIN with a credibility score of ${score}/100. More verification is recommended. `;
-  }
-
-  if (flags.length > 0) {
-    explanation += `Key concerns include: ${flags.slice(0, 3).join(", ")}. `;
-  }
-
-  if (sourceInfo) {
-    if (sourceInfo.credibility === "high") {
-      explanation += `The source (${sourceInfo.domain}) is a well-known credible news organization. `;
-    } else if (sourceInfo.credibility === "low") {
-      explanation += `The source (${sourceInfo.domain}) has a history of publishing unreliable content. `;
-    } else {
-      explanation += `The source (${sourceInfo.domain}) has not been verified for credibility. `;
-    }
-  }
-
-  explanation +=
-    "Always cross-reference important information with multiple trusted sources.";
-
-  return explanation;
 }

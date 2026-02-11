@@ -1,7 +1,3 @@
-/**
- * Google Gemini API Integration for Fake News Detection
- * Provides AI-powered analysis with 90%+ accuracy
- */
 
 export interface GeminiAnalysis {
   prediction: 'FAKE' | 'REAL' | 'UNCERTAIN';
@@ -12,13 +8,9 @@ export interface GeminiAnalysis {
   credibilityScore: number;
 }
 
-// Module-level state for smart model tracking
 let lastSuccessfulModel: string | null = null;
 const modelCooldowns = new Map<string, number>();
 
-/**
- * Get the best models to try first, avoiding those on cooldown
- */
 function getPreferredModels(): string[] {
   const allModels = [
     "gemini-3-flash-preview",
@@ -29,7 +21,6 @@ function getPreferredModels(): string[] {
   ];
   const now = Date.now();
 
-  // Filter out models currently in cooldown
   const availableModels = allModels.filter(m => {
     const cooldownEnd = modelCooldowns.get(m) || 0;
     return now > cooldownEnd;
@@ -85,15 +76,9 @@ export async function analyzeWithGemini(
     
 TEXT: "${text.slice(0, 3000)}"
 
-Respond ONLY with valid JSON:
-{
-  "prediction": "FAKE" | "REAL" | "UNCERTAIN",
-  "confidence": 0-100,
-  "reasoning": "2-3 sentence explanation",
-  "flags": ["list", "of", "concerns"],
-  "factualConcerns": ["factual", "issues"],
-  "credibilityScore": 0-100
-}`;
+Respond with ONLY valid JSON (no markdown, no backticks):
+{"prediction":"FAKE","confidence":85,"reasoning":"Brief explanation","flags":["flag1","flag2"],"factualConcerns":["concern1"],"credibilityScore":75}`;
+
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${API_KEY}`,
@@ -105,7 +90,7 @@ Respond ONLY with valid JSON:
           generationConfig: {
             temperature: 0.1,
             maxOutputTokens: 1024,
-            response_mime_type: "application/json"
+            // REMOVE: response_mime_type: "application/json"
           }
         })
       }
