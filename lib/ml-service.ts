@@ -5,16 +5,12 @@ import { analyzeWithGeminiRetry, getGeminiStatus } from "./gemini-service";
 import { updateGlobalStats } from "./stats-client";
 import { predictWithCustomML } from "./ml-processor";
 
-// Validate API keys and log status
 const geminiStatus = getGeminiStatus();
-if (geminiStatus.configured) {
-  console.log('🤖 Google Gemini API configured');
-  console.log(`✨ Last used model: ${geminiStatus.lastModel}`);
-} else {
+if (!geminiStatus.configured) {
   console.warn('⚠️ GEMINI_API_KEY not found - will use rule-based analysis only');
 }
 
-// Analysis Statistics for monitoring
+
 export const analysisStats = {
   total: 0,
   geminiSuccess: 0,
@@ -42,7 +38,7 @@ export const analysisStats = {
   },
 };
 
-// Legacy API stats for backward compatibility
+
 let apiStats = {
   totalCalls: 0,
   cacheHits: 0,

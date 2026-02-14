@@ -1,6 +1,54 @@
+/* Import fonts and material icons */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;400;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background-light text-ink font-display antialiased;
+  }
+}
+
+@layer utilities {
+  .serif-title {
+    font-family: var(--font-dm-serif), serif;
+  }
+
+  .mono-data {
+    font-family: var(--font-jetbrains-mono), monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .grid-line-v {
+    border-right: 1px solid rgba(26, 26, 26, 0.1);
+  }
+
+  .grid-line-h {
+    border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+  }
+
+  /* Analysis page specifics */
+  .annotation-flag {
+    @apply border-b-2 cursor-help transition-colors px-0.5;
+  }
+
+  .flag-disputed {
+    @apply border-disputed bg-disputed/5 hover:bg-disputed/10;
+  }
+
+  .flag-verified {
+    @apply border-verified bg-verified/5 hover:bg-verified/10;
+  }
+}
+
+::selection {
+  background-color: #1173d4;
+  color: white;
+}
 
 @layer base {
   :root {
@@ -61,12 +109,234 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-white border border-slate-100 p-6 rounded-2xl transition-all hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1;
+  }
+
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-md border border-white/20;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Material Symbols baseline setup */
+  .material-symbols-outlined {
+    font-family: "Material Symbols Outlined";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 1.5rem;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    font-feature-settings: "liga";
+    -webkit-font-feature-settings: "liga";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Verifier.AI marquee + scan-line + grid aesthetic */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 40s linear infinite;
+  }
+
+  @keyframes scan {
+    0% {
+      top: -100px;
+    }
+
+    100% {
+      top: 100%;
+    }
+  }
+
+  .scan-line {
+    background: linear-gradient(to bottom,
+        transparent 0%,
+        rgba(16, 185, 129, 0.1) 50%,
+        transparent 100%);
+    height: 100px;
+    width: 100%;
+    position: absolute;
+    z-index: 10;
+    pointer-events: none;
+    animation: scan 4s linear infinite;
+  }
+
+  .lie-detector-grid {
+    background-image: radial-gradient(circle at 2px 2px,
+        #1a1a1a 1px,
+        transparent 0);
+    background-size: 40px 40px;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  }
+
+  .text-glow-pink {
+    text-shadow: 0 0 8px rgba(255, 0, 122, 0.6);
+  }
+
+  /* Analysis page aesthetics */
+  .liquid-fill {
+    background: linear-gradient(180deg, #10b981 0%, #064e3b 100%);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .liquid-fill::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    filter: blur(2px);
+  }
+
+  .trace-node {
+    width: 8px;
+    height: 8px;
+    background: #00e0ff;
+    border-radius: 9999px;
+    box-shadow: 0 0 8px #00e0ff;
+    position: relative;
+  }
+
+  .trace-line {
+    height: 1px;
+    background: linear-gradient(90deg, #00e0ff 0%, transparent 100%);
+    flex-grow: 1;
+  }
+
+  .highlight-fake {
+    background: rgba(255, 0, 122, 0.15);
+    border-bottom: 2px solid #ff007a;
+    padding: 0 2px;
+  }
+
+  .highlight-truth {
+    background: rgba(16, 185, 129, 0.15);
+    border-bottom: 2px solid #10b981;
+    padding: 0 2px;
+  }
+
+  .terminal-container {
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    background: #0a0a0a;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Dashboard-specific aesthetics */
+  .dashboard-grid {
+    background-image: radial-gradient(circle at 1px 1px,
+        rgba(16, 185, 129, 0.05) 1px,
+        transparent 0);
+    background-size: 32px 32px;
+  }
+
+  .panel-glow {
+    box-shadow:
+      inset 0 0 15px rgba(16, 185, 129, 0.05),
+      0 0 5px rgba(16, 185, 129, 0.1);
+  }
+
+  .text-glow-green {
+    text-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  }
+
+  .text-glow-blue {
+    text-shadow: 0 0 8px rgba(0, 224, 255, 0.5);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #050505;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 10px;
+  }
+
+  /* Deep scan analysis page utilities */
+  .liquid-fill {
+    background: linear-gradient(180deg, #10b981 0%, #064e3b 100%);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .liquid-fill::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    filter: blur(2px);
+  }
+
+  .trace-node {
+    width: 8px;
+    height: 8px;
+    background: #00e0ff;
+    border-radius: 9999px;
+    box-shadow: 0 0 8px #00e0ff;
+    position: relative;
+  }
+
+  .trace-line {
+    height: 1px;
+    background: linear-gradient(90deg, #00e0ff 0%, transparent 100%);
+    flex-grow: 1;
+  }
+
+  .highlight-fake {
+    background: rgba(255, 0, 122, 0.15);
+    border-bottom: 2px solid #ff007a;
+    padding: 0 2px;
+  }
+
+  .highlight-truth {
+    background: rgba(16, 185, 129, 0.15);
+    border-bottom: 2px solid #10b981;
+    padding: 0 2px;
+  }
+
+  .terminal-container {
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    background: #0a0a0a;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
   }
 }

@@ -1,13 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DashboardStats } from "@/components/DashboardStats";
-import { RecentAnalyses } from "@/components/RecentAnalyses";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import { getRecentAnalyses, getStats } from "@/lib/utils";
 import { AnalysisResult, DashboardStats as StatsType } from "@/lib/types";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { BarChart3, Globe, User, ShieldCheck } from "lucide-react";
 
 export default function DashboardPage() {
   const [view, setView] = useState<"global" | "personal">("global");
@@ -63,179 +59,118 @@ export default function DashboardPage() {
 
   const currentAnalyses = view === "global" ? (globalStats?.recentAnalyses || []) : analyses;
 
-  const chartData = view === "global" ? [
-    { name: "Fake", value: globalStats?.fakeCount || 0, color: "#EF4444" },
-    { name: "Real", value: globalStats?.realCount || 0, color: "#22C55E" },
-    { name: "Uncertain", value: globalStats?.uncertainCount || 0, color: "#64748B" },
-  ] : [
-    { name: "Fake", value: analyses.filter(a => a.prediction === "FAKE").length, color: "#EF4444" },
-    { name: "Real", value: analyses.filter(a => a.prediction === "REAL").length, color: "#22C55E" },
-    { name: "Uncertain", value: analyses.filter(a => a.prediction === "UNCERTAIN").length, color: "#64748B" },
-  ];
-
   return (
-    <div className="min-h-screen bg-background text-foreground py-12 px-4 font-sans">
-      <div className="container mx-auto max-w-6xl">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tighter uppercase italic">
-              Insight <span className="text-primary">Dashboard</span>
-            </h1>
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
-              {view === "global" ? "Public Community Intelligence" : "Your Personal Analysis History"}
-            </p>
+    <div className="min-h-screen bg-background-light text-ink">
+      {/* Header Navigation */}
+      <header className="border-b border-ink/10 dark:border-white/10 bg-paper/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-[1440px] mx-auto flex h-16 items-stretch">
+          <div className="flex items-center px-8 border-r border-ink/10 dark:border-white/10 gap-3">
+             <div className="w-6 h-6 relative rounded-full overflow-hidden border border-ink/10">
+               <img src="/green_1.jpeg" alt="Logo" className="w-full h-full object-cover" />
+            </div>
+            <span className="mono-data font-bold text-lg tracking-tighter">FAKE NEWS DETECTOR</span>
           </div>
-
-          <div className="flex bg-muted p-1 border border-border">
-            <button
-              onClick={() => setView("global")}
-              className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                view === "global" ? "bg-background text-primary" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Global Stats
-            </button>
-            <button
-              onClick={() => setView("personal")}
-              className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                view === "personal" ? "bg-background text-primary" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              My Activity
-            </button>
+          <nav className="flex-grow flex items-stretch">
+            <Link href="/" className="flex items-center px-8 hover:bg-primary hover:text-white transition-colors border-r border-ink/10 dark:border-white/10 mono-data text-xs">
+              Index
+            </Link>
+            <div className="flex items-center px-8 border-r border-ink/10 dark:border-white/10 mono-data text-xs opacity-50">
+               Dashboard / {view === "global" ? "Global Mode" : "Personal Mode"}
+            </div>
+          </nav>
+          <div className="flex items-center px-8 gap-4">
+             <button 
+               onClick={() => setView("global")}
+               className={`mono-data text-[10px] border px-3 py-1 transition-all ${view === 'global' ? 'bg-ink text-white border-ink' : 'border-ink/20 hover:bg-ink hover:text-white'}`}
+             >
+               GLOBAL
+             </button>
+             <button 
+               onClick={() => setView("personal")}
+               className={`mono-data text-[10px] border px-3 py-1 transition-all ${view === 'personal' ? 'bg-ink text-white border-ink' : 'border-ink/20 hover:bg-ink hover:text-white'}`}
+             >
+               PERSONAL
+             </button>
           </div>
         </div>
+      </header>
 
+      <main className="max-w-[1440px] mx-auto p-12">
         {/* Stats Grid */}
-        <div className="mb-12">
-          <DashboardStats stats={currentStats} />
+        <div className="grid grid-cols-4 gap-0 border border-ink/10 mb-12">
+           <div className="p-8 border-r border-ink/10">
+             <span className="mono-data text-[10px] opacity-50 block mb-4">Total Analyses</span>
+             <span className="serif-title text-5xl block">{currentStats.totalAnalyses.toLocaleString()}</span>
+           </div>
+           <div className="p-8 border-r border-ink/10">
+             <span className="mono-data text-[10px] opacity-50 block mb-4">Fake Content Detected</span>
+             <span className="serif-title text-5xl block text-disputed">{currentStats.fakeDetected}%</span>
+           </div>
+           <div className="p-8 border-r border-ink/10">
+             <span className="mono-data text-[10px] opacity-50 block mb-4">Average Confidence</span>
+             <span className="serif-title text-5xl block text-primary">{currentStats.averageConfidence}%</span>
+           </div>
+           <div className="p-8">
+             <span className="mono-data text-[10px] opacity-50 block mb-4">Top Domain</span>
+             <span className="serif-title text-2xl block truncate mt-4">{currentStats.mostAnalyzedDomain}</span>
+           </div>
         </div>
 
-        {/* Community & Insights Section */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-12">
-          {/* Distribution Chart */}
-          <div className="lg:col-span-1 bg-background border border-border">
-            <div className="p-6 border-b border-border flex items-center justify-between">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">Verdict Distribution</h3>
-              <BarChart3 className="w-4 h-4 text-primary" />
-            </div>
-            <div className="p-6 h-[300px]">
-              {chartData.some(d => d.value > 0) ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={0}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  No data available
-                </div>
-              )}
-            </div>
+        <div className="grid grid-cols-12 gap-12">
+          {/* Recent Activity List */}
+          <div className="col-span-8">
+             <h3 className="mono-data text-xs text-primary mb-6 border-b border-primary pb-2 inline-block">Recent Activity Log</h3>
+             <div className="border border-ink/10">
+                {currentAnalyses.length > 0 ? (
+                  currentAnalyses.map((item: any, idx: number) => (
+                    <div key={idx} className="p-4 border-b border-ink/10 last:border-0 flex items-center justify-between hover:bg-ink/5 transition-colors">
+                       <div className="flex flex-col gap-1">
+                          <span className="mono-data text-[10px] opacity-40">{new Date(item.timestamp || Date.now()).toLocaleString()}</span>
+                          <span className="serif-title text-lg truncate max-w-md">{item.excerpt || item.title || item.originalText?.substring(0, 60) || "No content preview"}...</span>
+                       </div>
+                       <div className="flex items-center gap-4">
+                          <span className="mono-data text-xs">{item.source?.domain || "Unknown Source"}</span>
+                          <span className={`mono-data text-xs px-2 py-1 ${item.prediction === 'FAKE' ? 'bg-disputed text-white' : item.prediction === 'REAL' ? 'bg-verified text-white' : 'bg-ink/10'}`}>
+                             {item.prediction}
+                          </span>
+                       </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-12 text-center opacity-50 mono-data text-sm">No analysis data available. Initiate a scan.</div>
+                )}
+             </div>
           </div>
 
-          {/* Top Flags */}
-          <div className="lg:col-span-1 bg-background border border-border">
-            <div className="p-6 border-b border-border flex items-center justify-between">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">Common Red Flags</h3>
-              <ShieldCheck className="w-4 h-4 text-primary" />
-            </div>
-            <div className="p-6 space-y-3">
-              {(view === "global" ? (globalStats?.topFlags || []) : getTopFlags(analyses)).length > 0 ? (
-                (view === "global" ? globalStats.topFlags : getTopFlags(analyses)).map((flag: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-muted/30 border border-border">
-                    <span className="text-[10px] font-bold uppercase tracking-wider">{flag.text}</span>
-                    <span className="text-[10px] text-primary font-bold">{flag.count}x</span>
-                  </div>
-                ))
-              ) : (
-                <div className="py-12 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  No flags detected
+          {/* Side Panel */}
+          <div className="col-span-4 space-y-8">
+             <div className="p-8 bg-ink text-white">
+                <span className="mono-data text-[10px] opacity-50 block mb-4">System Status</span>
+                <div className="space-y-4">
+                   <div className="flex justify-between border-b border-white/20 pb-2">
+                      <span className="mono-data text-xs">API Latency</span>
+                      <span className="mono-data text-xs text-primary">0.04s</span>
+                   </div>
+                   <div className="flex justify-between border-b border-white/20 pb-2">
+                      <span className="mono-data text-xs">Cache Hit Rate</span>
+                      <span className="mono-data text-xs text-primary">89.2%</span>
+                   </div>
+                   <div className="flex justify-between border-b border-white/20 pb-2">
+                      <span className="mono-data text-xs">Active Nodes</span>
+                      <span className="mono-data text-xs">4,291</span>
+                   </div>
                 </div>
-              )}
-            </div>
-          </div>
+             </div>
 
-          {/* Domain Trust/Signals */}
-          <div className="lg:col-span-1 bg-background border border-border">
-            <div className="p-6 border-b border-border flex items-center justify-between">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">Signal Averages</h3>
-              <Globe className="w-4 h-4 text-primary" />
-            </div>
-            <div className="p-6 space-y-4">
-              {(view === "global" ? (globalStats?.averageSignals || []) : getAverageSignals(analyses)).map((signal: any, i: number) => (
-                <div key={i} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{signal.name}</span>
-                    <span className="text-[10px] font-bold">{signal.score}%</span>
-                  </div>
-                  <div className="w-full h-1 bg-muted">
-                    <div 
-                      className="h-full bg-primary" 
-                      style={{ width: `${signal.score}%` }}
-                    />
-                  </div>
+             <div className="border border-ink/10 p-8">
+                <span className="mono-data text-[10px] opacity-50 block mb-4">Threat Map (Region)</span>
+                <div className="h-48 bg-ink/5 flex items-center justify-center">
+                   <span className="mono-data text-xs opacity-30">[ Map Visualization Module ]</span>
                 </div>
-              ))}
-            </div>
+             </div>
           </div>
         </div>
-
-        {/* Global/Personal Table */}
-        <div className="bg-background border border-border overflow-hidden">
-          <div className="p-6 border-b border-border flex items-center justify-between">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em]">
-              {view === "global" ? "Global Feed" : "Personal Records"}
-            </h3>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-              Latest Entries
-            </span>
-          </div>
-          <div className="overflow-x-auto">
-            <RecentAnalyses analyses={currentAnalyses} limit={10} hideHeader />
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
-}
-
-function getTopFlags(analyses: AnalysisResult[]): any[] {
-  const flagCounts: Record<string, number> = {};
-  analyses.forEach((a) => a.flags.forEach((f) => flagCounts[f] = (flagCounts[f] || 0) + 1));
-  return Object.entries(flagCounts).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([text, count]) => ({ text, count }));
-}
-
-function getAverageSignals(analyses: AnalysisResult[]): any[] {
-  if (analyses.length === 0) return [];
-  const totals = analyses.reduce((acc, a) => ({
-    ml: acc.ml + a.signals.mlScore,
-    sentiment: acc.sentiment + a.signals.sentimentScore,
-    clickbait: acc.clickbait + a.signals.clickbaitScore,
-    source: acc.source + a.signals.sourceScore,
-    bias: acc.bias + a.signals.biasScore,
-  }), { ml: 0, sentiment: 0, clickbait: 0, source: 0, bias: 0 });
-  const n = analyses.length;
-  return [
-    { name: "Prediction", score: Math.round(totals.ml / n) },
-    { name: "Confidence", score: Math.round(totals.sentiment / n) },
-    { name: "Language", score: Math.round(totals.clickbait / n) },
-    { name: "Integrity", score: Math.round(totals.source / n) },
-    { name: "Neutrality", score: Math.round(totals.bias / n) },
-  ];
 }

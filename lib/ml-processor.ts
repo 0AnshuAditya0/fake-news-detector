@@ -11,16 +11,12 @@ export interface CustomMLPrediction {
 const MODEL_PATH = path.join(process.cwd(), 'public', 'models', 'fake_news_model.pkl');
 const PYTHON_SCRIPT = path.join(process.cwd(), 'ml', 'predict.py');
 
-/**
- * Check if model is available
- */
+
 function isModelAvailable(): boolean {
     return fs.existsSync(MODEL_PATH) && fs.existsSync(PYTHON_SCRIPT);
 }
 
-/**
- * Predict using the custom ML model via Python subprocess
- */
+
 export async function predictWithCustomML(text: string): Promise<CustomMLPrediction> {
     if (!isModelAvailable()) {
         return {
@@ -31,7 +27,7 @@ export async function predictWithCustomML(text: string): Promise<CustomMLPredict
     }
 
     return new Promise((resolve) => {
-        // Sanitize text for JSON
+
         const sanitizedText = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').slice(0, 3000);
 
         const python = spawn('python', [PYTHON_SCRIPT, sanitizedText], {
@@ -77,7 +73,7 @@ export async function predictWithCustomML(text: string): Promise<CustomMLPredict
             }
         });
 
-        // Timeout after 5 seconds
+
         setTimeout(() => {
             python.kill();
             resolve({
