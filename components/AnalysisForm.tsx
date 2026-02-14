@@ -79,18 +79,18 @@ export function AnalysisForm() {
   };
 
   return (
-    <div className="w-full bg-background border border-border">
-      <form onSubmit={handleSubmit} className="p-8 space-y-8">
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="space-y-8 font-mono text-xs md:text-sm">
         {/* Source Selection */}
-        <div className="space-y-4">
-          <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-            Where did you find this?
+        <div className="space-y-3">
+          <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-neonGreen/70">
+            SOURCE_ORIGIN
           </label>
           <div className="relative">
             <select
               value={sourceType}
               onChange={(e) => setSourceType(e.target.value)}
-              className="w-full h-12 pl-12 pr-4 bg-background border border-border text-sm font-medium appearance-none cursor-pointer focus:border-primary outline-none transition-colors"
+              className="w-full h-11 pl-11 pr-4 bg-black/60 border border-neonGreen/40 text-[11px] uppercase tracking-[0.15em] text-neonGreen appearance-none cursor-pointer outline-none focus:border-neonGreen focus:ring-0 transition-colors"
             >
               {SOURCE_TYPES.map((type) => (
                 <option key={type.id} value={type.id}>
@@ -98,82 +98,87 @@ export function AnalysisForm() {
                 </option>
               ))}
             </select>
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-neonGreen">
               {React.createElement(
                 SOURCE_TYPES.find((t) => t.id === sourceType)?.icon || Search,
-                { className: "w-5 h-5 text-primary" }
+                { className: "w-4 h-4" }
               )}
             </div>
           </div>
         </div>
 
-        {/* URL Input */}
-        <div className="space-y-4">
-          <div className="relative">
+        {/* URL Input – primary lie detector prompt */}
+        <div className="flex flex-col md:flex-row gap-4 items-stretch">
+          <div className="flex-1 relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neonGreen font-mono text-sm">
+              &gt;
+            </span>
             <input
               type="text"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Paste a URL to analyze article content..."
-              className="w-full h-12 pl-12 pr-4 bg-muted/50 border border-border text-sm placeholder:text-muted-foreground outline-none focus:border-primary transition-colors"
+              placeholder="ENTER SOURCE URL..."
+              className="w-full bg-black/60 border border-neonGreen/40 p-4 pl-9 text-sm md:text-base font-mono tracking-[0.15em] uppercase text-neonGreen placeholder:text-neonGreen/20 outline-none focus:border-neonGreen focus:ring-0 transition-all"
               disabled={loading}
             />
-            <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           </div>
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="bg-neonGreen text-black font-black uppercase text-sm md:text-base px-8 md:px-12 py-4 md:py-0 hover:shadow-neon-glow hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 min-h-[3.25rem]"
+          >
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-[20px]">radar</span>
+                ANALYZE
+              </>
+            )}
+          </Button>
         </div>
 
-        {/* Content Box */}
-        <div className="space-y-4">
+        {/* Content Box – optional deeper text analysis */}
+        <div className="space-y-3">
+          <label className="block text-[10px] font-bold uppercase tracking-[0.3em] text-neonBlue/70">
+            OPTIONAL_TEXT_PAYLOAD
+          </label>
           <div className="relative group">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Paste article text or controversial claims here..."
-              rows={6}
-              className="w-full p-6 bg-muted/30 border border-border text-sm leading-relaxed placeholder:text-muted-foreground outline-none focus:border-primary transition-colors resize-none"
+              placeholder="PASTE ARTICLE TEXT OR CLAIMS HERE FOR DEEP SCAN..."
+              rows={5}
+              className="w-full p-4 md:p-5 bg-terminalGray/70 border border-neonGreen/25 text-xs md:text-sm leading-relaxed text-white placeholder:text-white/30 outline-none focus:border-neonGreen focus:ring-0 transition-colors resize-none"
               disabled={loading}
             />
             {!text && (
               <button
                 type="button"
                 onClick={handlePasteFromClipboard}
-                className="absolute right-4 bottom-4 px-3 py-1.5 bg-background border border-border text-[10px] font-bold uppercase tracking-widest hover:bg-muted transition-colors opacity-0 group-hover:opacity-100"
+                className="absolute right-4 bottom-3 px-3 py-1.5 bg-black/70 border border-neonGreen/40 text-[9px] font-bold uppercase tracking-[0.25em] text-neonGreen hover:bg-neonGreen/10 transition-colors opacity-0 group-hover:opacity-100"
               >
-                Paste
+                PASTE
               </button>
             )}
           </div>
         </div>
 
-        {/* Actions Row */}
+        {/* Secondary actions */}
         <div className="grid md:grid-cols-2 gap-4">
           <button
             type="button"
-            className="flex items-center justify-center gap-3 h-14 border border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all text-muted-foreground group"
+            className="flex items-center justify-center gap-3 h-12 md:h-14 border border-dashed border-neonGreen/40 hover:border-neonGreen hover:bg-neonGreen/5 transition-all text-[10px] md:text-xs font-bold uppercase tracking-[0.25em] text-white/70 group"
             disabled={loading}
           >
-            <ImageIcon className="w-5 h-5 group-hover:text-primary" />
-            <span className="text-xs font-bold uppercase tracking-widest">Upload Screenshot</span>
+            <ImageIcon className="w-4 h-4 md:w-5 md:h-5 text-neonGreen group-hover:scale-110 transition-transform" />
+            Upload_Screenshot (Beta)
           </button>
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="h-14 bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3"
-          >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <Search className="w-5 h-5" />
-                Verify Truth
-              </>
-            )}
-          </Button>
         </div>
 
         {error && (
-          <div className="p-4 bg-destructive/5 border border-destructive text-destructive text-[10px] font-bold uppercase tracking-widest">
+          <div className="p-4 bg-neonPink/10 border border-neonPink text-neonPink text-[10px] font-bold uppercase tracking-widest">
             {error}
           </div>
         )}

@@ -2,27 +2,24 @@ import { NextResponse } from "next/server";
 import { getGeminiStats } from "@/lib/gemini-service";
 import { getCacheStats } from "@/lib/cache";
 
-/**
- * GET /api/stats
- * Returns API and cache statistics for monitoring
- */
+
 export async function GET() {
   try {
-    const apiStats = getGeminiStats();
+    const geminiStats = getGeminiStats();
     const cacheStats = getCacheStats();
 
     return NextResponse.json(
       {
         api: {
-          totalCalls: apiStats.totalCalls,
-          cacheHits: apiStats.cacheHits,
-          apiCalls: apiStats.apiCalls,
-          failures: apiStats.failures,
-          cacheHitRate: apiStats.cacheHitRate,
-          failureRate: apiStats.failureRate,
-          lastError: apiStats.lastError,
-          lastErrorTime: apiStats.lastErrorTime
-            ? new Date(apiStats.lastErrorTime).toISOString()
+          totalCalls: geminiStats.totalCalls,
+          cacheHits: geminiStats.cacheHits,
+          apiCalls: geminiStats.apiCalls,
+          failures: geminiStats.failures,
+          cacheHitRate: geminiStats.cacheHitRate,
+          failureRate: geminiStats.failureRate,
+          lastError: geminiStats.lastError,
+          lastErrorTime: geminiStats.lastErrorTime
+            ? new Date(geminiStats.lastErrorTime).toISOString()
             : null,
         },
         cache: {
@@ -34,12 +31,12 @@ export async function GET() {
           ttlMinutes: cacheStats.ttlMinutes,
         },
         health: {
-          status: apiStats.failureRate === "0%" || parseFloat(apiStats.failureRate) < 50 
-            ? "healthy" 
+          status: geminiStats.failureRate === "0%" || parseFloat(geminiStats.failureRate) < 50
+            ? "healthy"
             : "degraded",
-          message: apiStats.failures === 0
+          message: geminiStats.failures === 0
             ? "All systems operational"
-            : `${apiStats.failures} API failures detected`,
+            : `${geminiStats.failures} API failures detected`,
         },
         timestamp: new Date().toISOString(),
       },

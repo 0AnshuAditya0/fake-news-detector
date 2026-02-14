@@ -16,7 +16,11 @@ interface TextHighlighterProps {
 
 export function TextHighlighter({ text, highlights }: TextHighlighterProps) {
   if (highlights.length === 0) {
-    return <p className="text-gray-700 leading-relaxed">{text}</p>;
+    return (
+      <p className="text-white/80 leading-relaxed whitespace-pre-wrap break-words">
+        {text}
+      </p>
+    );
   }
 
   // Create a map of text positions to highlights
@@ -100,14 +104,14 @@ export function TextHighlighter({ text, highlights }: TextHighlighterProps) {
 function getHighlightColor(type: Highlight["type"]): string {
   switch (type) {
     case "fake":
-      return "bg-destructive/10 text-destructive border-destructive";
+      return "highlight-fake text-neonPink border-neonPink";
     case "bias":
-      return "bg-warning/10 text-warning border-warning";
+      return "bg-neonBlue/10 text-neonBlue border-neonBlue";
     case "clickbait":
-      return "bg-primary/10 text-primary border-primary";
+      return "bg-neonPink/10 text-neonPink border-neonPink";
     case "sentiment":
-      return "bg-violet-500/10 text-violet-500 border-violet-500";
+      return "bg-neonGreen/10 text-neonGreen border-neonGreen";
     default:
-      return "bg-muted text-foreground border-border";
+      return "bg-terminalGray text-white border-neonGreen/30";
   }
 }

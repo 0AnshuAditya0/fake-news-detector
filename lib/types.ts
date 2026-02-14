@@ -34,6 +34,10 @@ export interface AnalysisResult {
   originalText: string;
   url?: string;
   timestamp: number;
+  customML?: {
+    prediction: string;
+    confidence: number;
+  };
 }
 
 export interface AnalysisRequest {

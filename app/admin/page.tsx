@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { RefreshCw, TrendingUp, Database, AlertCircle, CheckCircle } from "lucide-react";
 
 interface ApiStats {
@@ -46,9 +45,7 @@ export default function AdminPage() {
     
     try {
       const response = await fetch("/api/stats");
-      if (!response.ok) {
-        throw new Error("Failed to fetch stats");
-      }
+      if (!response.ok) throw new Error("Failed to fetch stats");
       const data = await response.json();
       setStats(data);
     } catch (err: any) {
@@ -60,263 +57,133 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchStats();
-    // Auto-refresh every 10 seconds
     const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  if (loading && !stats) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 dark:bg-gradient-to-br dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-cyan-400 mx-auto mb-4"></div>
-          <p className="text-gray-700 dark:text-gray-300">Loading statistics...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <p className="text-center text-red-600 dark:text-red-400">{error}</p>
-            <Button onClick={fetchStats} className="w-full mt-4">
-              Try Again
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!stats) return null;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 dark:bg-slate-950 py-8 sm:py-12 px-4">
-      <div className="container mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-cyan-400 dark:to-blue-400 bg-clip-text text-transparent mb-2">
-              System Statistics
-            </h1>
-            <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">
-              Real-time monitoring of API performance
-            </p>
+    <div className="min-h-screen bg-background-light text-ink">
+      <header className="border-b border-ink/10 dark:border-white/10 bg-paper/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-[1440px] mx-auto flex h-16 items-stretch">
+          <div className="flex items-center px-8 border-r border-ink/10 dark:border-white/10 gap-3">
+             <div className="w-6 h-6 relative rounded-full overflow-hidden border border-ink/10">
+               <img src="/green_1.jpeg" alt="Logo" className="w-full h-full object-cover" />
+            </div>
+            <span className="mono-data font-bold text-lg tracking-tighter">FAKE NEWS DETECTOR</span>
           </div>
-          <Button onClick={fetchStats} disabled={loading} variant="outline" size="sm" className="w-full sm:w-auto">
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+          <nav className="flex-grow flex items-stretch">
+            <Link href="/" className="flex items-center px-8 hover:bg-primary hover:text-white transition-colors border-r border-ink/10 dark:border-white/10 mono-data text-xs">
+              Index
+            </Link>
+            <Link href="/dashboard" className="flex items-center px-8 hover:bg-primary hover:text-white transition-colors border-r border-ink/10 dark:border-white/10 mono-data text-xs">
+              Dashboard
+            </Link>
+            <div className="flex items-center px-8 border-r border-ink/10 dark:border-white/10 mono-data text-xs opacity-50 bg-ink/5 text-ink">
+               Admin Console
+            </div>
+          </nav>
+        </div>
+      </header>
+      
+      <main className="max-w-[1440px] mx-auto p-12">
+        <div className="flex justify-between items-end mb-12">
+           <div>
+             <span className="mono-data text-primary mb-2 block">[ System Administration ]</span>
+             <h1 className="serif-title text-4xl">Platform Diagnostics</h1>
+           </div>
+           <button 
+             onClick={fetchStats} 
+             disabled={loading}
+             className="mono-data text-xs flex items-center gap-2 border border-ink/20 px-4 py-2 hover:bg-ink hover:text-white transition-colors"
+           >
+             <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} />
+             Refresh Telemetry
+           </button>
         </div>
 
-        {/* Health Status */}
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {stats.health.status === "healthy" ? (
-                  <CheckCircle className="w-8 h-8 text-green-500" />
-                ) : (
-                  <AlertCircle className="w-8 h-8 text-yellow-500" />
-                )}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    System Status: {stats.health.status.toUpperCase()}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">{stats.health.message}</p>
-                </div>
-              </div>
-              <div className="text-right text-sm text-gray-600 dark:text-gray-400">
-                Last updated: {new Date(stats.timestamp).toLocaleTimeString()}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* API Statistics */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.api.totalCalls}</div>
-              <p className="text-xs text-muted-foreground">
-                All analysis requests
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Cache Hit Rate</CardTitle>
-              <Database className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {stats.api.cacheHitRate}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {stats.api.cacheHits} cache hits
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">API Calls</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.api.apiCalls}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Google Gemini API requests
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Failure Rate</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${
-                parseFloat(stats.api.failureRate) > 10 ? "text-red-600" : "text-gray-900"
-              }`}>
-                {stats.api.failureRate}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {stats.api.failures} failures
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Cache Statistics */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="w-5 h-5" />
-              Cache Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Cache Entries</p>
-                <p className="text-2xl font-bold">
-                  {stats.cache.validEntries} / {stats.cache.maxSize}
-                </p>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: `${stats.cache.utilizationPercent}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {stats.cache.utilizationPercent}% utilized
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Expired Entries</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {stats.cache.expiredEntries}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Awaiting cleanup
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Cache TTL</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {stats.cache.ttlMinutes} min
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Time to live per entry
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Error Information */}
-        {stats.api.lastError && (
-          <Card className="border-red-200 bg-red-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-700">
-                <AlertCircle className="w-5 h-5" />
-                Last Error
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-red-800 mb-2">{stats.api.lastError}</p>
-              {stats.api.lastErrorTime && (
-                <p className="text-xs text-red-600">
-                  Occurred at: {new Date(stats.api.lastErrorTime).toLocaleString()}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+        {error && (
+          <div className="p-8 border border-disputed/20 bg-disputed/5 mb-12">
+            <span className="mono-data text-disputed text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" /> System Error: {error}
+            </span>
+          </div>
         )}
 
-        {/* Performance Insights */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Performance Insights</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">Cache Efficiency</p>
-                  <p className="text-sm text-gray-600">
-                    {parseFloat(stats.api.cacheHitRate) > 50
-                      ? "Excellent cache performance! Most requests are served from cache."
-                      : "Cache is warming up. Performance will improve with more requests."}
-                  </p>
+        {stats && (
+           <div className="space-y-12">
+             {/* Key Metrics */}
+             <section className="grid grid-cols-4 gap-0 border border-ink/10">
+                <div className="p-8 border-r border-ink/10">
+                  <span className="mono-data text-[10px] opacity-50 block mb-2">Operational Status</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${stats.health.status === 'healthy' ? 'bg-verified' : 'bg-disputed'}`}></span>
+                    <span className="mono-data text-sm uppercase">{stats.health.status}</span>
+                  </div>
                 </div>
-              </div>
+                <div className="p-8 border-r border-ink/10">
+                  <span className="mono-data text-[10px] opacity-50 block mb-2">Total Requests</span>
+                  <span className="serif-title text-3xl block">{stats.api.totalCalls}</span>
+                </div>
+                <div className="p-8 border-r border-ink/10">
+                  <span className="mono-data text-[10px] opacity-50 block mb-2">Cache Hit Rate</span>
+                  <span className="serif-title text-3xl block text-primary">{stats.api.cacheHitRate}</span>
+                </div>
+                <div className="p-8">
+                  <span className="mono-data text-[10px] opacity-50 block mb-2">Failure Rate</span>
+                  <span className={`serif-title text-3xl block ${parseFloat(stats.api.failureRate) > 5 ? 'text-disputed' : 'text-verified'}`}>
+                    {stats.api.failureRate}
+                  </span>
+                </div>
+             </section>
 
-              <div className="flex items-start gap-3">
-                {stats.api.failures === 0 ? (
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                )}
-                <div>
-                  <p className="font-medium">API Reliability</p>
-                  <p className="text-sm text-gray-600">
-                    {stats.api.failures === 0
-                      ? "All API calls successful. System is operating normally."
-                      : `${stats.api.failures} API failures detected. Retry logic is handling errors gracefully.`}
-                  </p>
-                </div>
-              </div>
+             {/* Detailed Stats */}
+             <div className="grid grid-cols-2 gap-12">
+                <section>
+                   <h3 className="mono-data text-xs text-primary mb-6 border-b border-primary pb-2 inline-block">Cache Performance</h3>
+                   <div className="border border-ink/10 p-8 space-y-6">
+                      <div className="flex justify-between items-center">
+                         <span className="mono-data text-xs opacity-60">Utilization ({stats.cache.utilizationPercent}%)</span>
+                         <span className="mono-data text-xs">{stats.cache.validEntries} / {stats.cache.maxSize} Entries</span>
+                      </div>
+                      <div className="w-full bg-ink/5 h-1">
+                         <div className="bg-primary h-full" style={{ width: `${stats.cache.utilizationPercent}%` }}></div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-ink/10">
+                         <div>
+                            <span className="mono-data text-[10px] opacity-40 block">Expired Entries</span>
+                            <span className="mono-data text-lg">{stats.cache.expiredEntries}</span>
+                         </div>
+                         <div>
+                            <span className="mono-data text-[10px] opacity-40 block">TTL Configuration</span>
+                            <span className="mono-data text-lg">{stats.cache.ttlMinutes} min</span>
+                         </div>
+                      </div>
+                   </div>
+                </section>
 
-              <div className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">Retry Mechanism</p>
-                  <p className="text-sm text-gray-600">
-                    Automatic retry with exponential backoff (3 attempts) ensures high reliability.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                <section>
+                   <h3 className="mono-data text-xs text-primary mb-6 border-b border-primary pb-2 inline-block">API Reliability</h3>
+                   <div className="border border-ink/10">
+                      <div className="p-6 border-b border-ink/10 flex items-center justify-between">
+                         <span className="mono-data text-xs">Gemini Pro API Calls</span>
+                         <span className="mono-data text-lg font-bold">{stats.api.apiCalls}</span>
+                      </div>
+                      <div className="p-6 border-b border-ink/10 flex items-center justify-between">
+                         <span className="mono-data text-xs">Failed Requests</span>
+                         <span className={`mono-data text-lg font-bold ${stats.api.failures > 0 ? 'text-disputed' : 'text-verified'}`}>{stats.api.failures}</span>
+                      </div>
+                      <div className="p-6 bg-ink/5">
+                         <span className="mono-data text-[10px] opacity-50 block mb-2">Last Error Log</span>
+                         <p className="mono-data text-xs text-disputed truncate">
+                           {stats.api.lastError ? `[${stats.api.lastErrorTime}] ${stats.api.lastError}` : "No recent errors logged."}
+                         </p>
+                      </div>
+                   </div>
+                </section>
+             </div>
+           </div>
+        )}
+      </main>
     </div>
   );
 }
