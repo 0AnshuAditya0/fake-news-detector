@@ -1,16 +1,14 @@
 
-/node_modules
-/.pnp
+node_modules/
+**/node_modules/
+.pnp
 .pnp.js
 
-
 /coverage
-
 /.next/
 /out/
-
-
 /build
+.turbo
 
 .DS_Store
 *.pem
@@ -26,7 +24,19 @@ yarn-error.log*
 
 *.tsbuildinfo
 next-env.d.ts
-/data
+
+server/__pycache__/
+server/*.pyc
+server/.venv/
+server/venv/
+
+*.csv
+*.pkl
+*.h5
+*.pt
+*.pth
+
+vocabulary.json
 
 LINKEDIN_POST.md
 STATS_EXPLAINED.md
@@ -51,8 +61,4 @@ QUICK_REFERENCE.md
 QUICKSTART.md
 SETUP.md
 SUPABASE_SETUP.md
-
-fake_news_model.pkl
-fake_news_pipeline1.pkl 
-vocabulary.json
-WELFake_Dataset.csv
+client/test-sb.mjs
