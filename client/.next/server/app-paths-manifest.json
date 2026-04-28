@@ -1,0 +1,7 @@
+{
+  "/page": "app/page.js",
+  "/icon.svg/route": "app/icon.svg/route.js",
+  "/api/global-stats/route": "app/api/global-stats/route.js",
+  "/analyze/[id]/page": "app/analyze/[id]/page.js",
+  "/api/analyze/route": "app/api/analyze/route.js"
+}

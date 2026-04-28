@@ -1,0 +1,183 @@
+{
+  "totalAnalyses": 11,
+  "fakeCount": 1,
+  "realCount": 10,
+  "uncertainCount": 0,
+  "totalConfidence": 976,
+  "domainCounts": {
+    "timesofindia.indiatimes.com": 1,
+    "livemint.com": 1
+  },
+  "analyses": [
+    {
+      "prediction": "REAL",
+      "confidence": 74,
+      "domain": "timesofindia.indiatimes.com",
+      "timestamp": 1761127045245
+    },
+    {
+      "prediction": "REAL",
+      "confidence": 84,
+      "domain": "livemint.com",
+      "timestamp": 1761129328331
+    },
+    {
+      "id": "1770699633322-ljibrndrb",
+      "prediction": "REAL",
+      "confidence": 90,
+      "overallScore": 95,
+      "domain": "unknown",
+      "timestamp": 1770699633322,
+      "flags": [],
+      "signals": {
+        "mlScore": 50,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president vladimir putin has also epstein links"
+    },
+    {
+      "id": "1770701314469-lfidu51cq",
+      "prediction": "REAL",
+      "confidence": 90,
+      "overallScore": 95,
+      "domain": "unknown",
+      "timestamp": 1770701314469,
+      "flags": [],
+      "signals": {
+        "mlScore": 50,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president putin has also links in epstein files"
+    },
+    {
+      "id": "1770701813034-y4r8m4mbz",
+      "prediction": "REAL",
+      "confidence": 90,
+      "overallScore": 95,
+      "domain": "unknown",
+      "timestamp": 1770701813034,
+      "flags": [],
+      "signals": {
+        "mlScore": 50,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president v;ladimir putin have also links in epstein files"
+    },
+    {
+      "id": "1770702272031-cfnqp6k9f",
+      "prediction": "REAL",
+      "confidence": 90,
+      "overallScore": 95,
+      "domain": "unknown",
+      "timestamp": 1770702272031,
+      "flags": [],
+      "signals": {
+        "mlScore": 50,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president vladmir putin have also links in epstein files\n"
+    },
+    {
+      "id": "1770702380278-cxidogdv8",
+      "prediction": "REAL",
+      "confidence": 90,
+      "overallScore": 95,
+      "domain": "unknown",
+      "timestamp": 1770702380278,
+      "flags": [],
+      "signals": {
+        "mlScore": 50,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president vladimir putin have also links in epstein files"
+    },
+    {
+      "id": "1770702816221-ya44aljgf",
+      "prediction": "REAL",
+      "confidence": 90,
+      "overallScore": 95,
+      "domain": "unknown",
+      "timestamp": 1770702816221,
+      "flags": [],
+      "signals": {
+        "mlScore": 50,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president have also links in epstein files"
+    },
+    {
+      "id": "1770703300982-gf4hy2yhi",
+      "prediction": "REAL",
+      "confidence": 90,
+      "overallScore": 95,
+      "domain": "unknown",
+      "timestamp": 1770703300982,
+      "flags": [],
+      "signals": {
+        "mlScore": 50,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president also have links in epstein files"
+    },
+    {
+      "id": "1770703512640-pmgnen7ib",
+      "prediction": "REAL",
+      "confidence": 90,
+      "overallScore": 95,
+      "domain": "unknown",
+      "timestamp": 1770703512640,
+      "flags": [],
+      "signals": {
+        "mlScore": 50,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president also have links in epstein files"
+    },
+    {
+      "id": "1770703669048-ocrt9k0p5",
+      "prediction": "FAKE",
+      "confidence": 98,
+      "overallScore": 31,
+      "domain": "unknown",
+      "timestamp": 1770703669048,
+      "flags": [
+        "Lack of verifiable sources",
+        "Sensational claim",
+        "Potential for disinformation",
+        "Grammatical errors"
+      ],
+      "signals": {
+        "mlScore": 5,
+        "clickbaitScore": 100,
+        "sentimentScore": 100,
+        "biasScore": 100,
+        "sourceScore": 50
+      },
+      "excerpt": "russian president vladimir putin have also links in epstein files"
+    }
+  ]
+}
