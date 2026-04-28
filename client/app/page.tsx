@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveAnalysis } from '@/lib/utils';
-import { ShieldCheck, Activity, Fingerprint, Terminal } from 'lucide-react';
+import { ShieldCheck, Activity, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   const [input, setInput] = useState("");
@@ -87,8 +87,8 @@ export default function LandingPage() {
 
       <main className="max-w-[1440px] mx-auto min-h-[calc(100vh-80px)]">
         <section className="grid grid-cols-12 min-h-[50vh] items-stretch border-b border-border">
-          <div className="col-span-8 p-16 flex flex-col justify-center border-r border-border relative overflow-hidden">
-            <div className="absolute inset-0 bg-primary/5 pattern-grid-lg mix-blend-overlay"></div>
+          <div className="col-span-8 p-16 flex flex-col justify-center border-r border-border relative overflow-hidden" style={{background: 'radial-gradient(ellipse 80% 60% at 40% 50%, rgba(17,115,212,0.07) 0%, transparent 70%)' }}>
+            <div className="absolute inset-0" style={{backgroundImage: 'radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,0.04) 1px, transparent 0)', backgroundSize: '32px 32px'}}></div>
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-8">
                 <ShieldCheck className="w-8 h-8 text-primary" />
@@ -100,47 +100,72 @@ export default function LandingPage() {
               <p className="max-w-xl text-lg font-light leading-relaxed mb-10 text-muted-foreground">
                 High-fidelity pipeline leveraging an optimized Custom WelFake Dataset Model. Expect rigorous coefficient analysis and multi-signal heuristics.
               </p>
-              
-              <div className="bg-card border border-border p-6 shadow-sm">
-                <div className="flex items-center gap-4 mb-4">
-                  <Terminal className="w-5 h-5 text-primary" />
-                  <span className="mono-data text-sm tracking-wider uppercase">Input Buffer</span>
+
+              {loading ? (
+                <div
+                  className="w-full flex items-center gap-4 px-7 py-5"
+                  style={{
+                    background: '#0d1117',
+                    border: '1px solid rgba(17,115,212,0.45)',
+                    borderRadius: '9999px',
+                    boxShadow: '0 0 0 1px rgba(17,115,212,0.15), 0 0 32px rgba(17,115,212,0.12), inset 0 1px 0 rgba(255,255,255,0.04)',
+                  }}
+                >
+                  <div className="flex flex-col gap-1.5 flex-1 font-mono text-sm">
+                    {steps.map((text, i) => (
+                      <div key={i} className={`flex items-center gap-3 transition-all ${i <= scanStep ? 'text-[#1173d4] opacity-100' : 'opacity-0 hidden'}`}>
+                        {i <= scanStep && <span className="animate-pulse text-xs">❯</span>}
+                        <span className="text-xs tracking-wider">{text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse" style={{background: 'rgba(17,115,212,0.25)', border: '1px solid rgba(17,115,212,0.5)'}}>
+                    <ArrowRight className="w-4 h-4 text-[#1173d4]" />
+                  </div>
                 </div>
-                
-                {loading ? (
-                  <div className="py-8 px-4 border border-border bg-background space-y-4">
-                    <div className="flex flex-col gap-2 font-mono text-sm">
-                      {steps.map((text, i) => (
-                        <div key={i} className={`flex items-center gap-3 ${i <= scanStep ? 'text-primary' : 'text-muted/30 hidden'}`}>
-                          {i <= scanStep && <span className="animate-pulse">❯</span>}
-                          <span>{text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-stretch border border-border bg-background focus-within:ring-1 focus-within:ring-primary transition-all">
-                    <input 
-                      id="analysis-input"
-                      type="text" 
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-                      placeholder="Enter target content payload..." 
-                      className="w-full bg-transparent border-none focus:ring-0 px-6 py-4 mono-data placeholder:text-muted-foreground outline-none text-sm"
-                      disabled={loading}
-                    />
-                    <button 
-                      onClick={handleAnalyze}
-                      disabled={loading}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 mono-data text-sm uppercase tracking-wider font-bold transition-colors border-l border-border disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      <Fingerprint className="w-4 h-4" />
-                      Execute
-                    </button>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div
+                  className="w-full flex items-center gap-3 px-7 py-1 transition-all duration-300 group"
+                  style={{
+                    background: '#0d1117',
+                    border: '1px solid rgba(17,115,212,0.35)',
+                    borderRadius: '9999px',
+                    boxShadow: '0 0 0 1px rgba(17,115,212,0.1), 0 0 24px rgba(17,115,212,0.08), inset 0 1px 0 rgba(255,255,255,0.04)',
+                  }}
+                  onFocus={(e) => (e.currentTarget.style.boxShadow = '0 0 0 1px rgba(17,115,212,0.4), 0 0 40px rgba(17,115,212,0.2), inset 0 1px 0 rgba(255,255,255,0.05)')}
+                  onBlur={(e) => (e.currentTarget.style.boxShadow = '0 0 0 1px rgba(17,115,212,0.1), 0 0 24px rgba(17,115,212,0.08), inset 0 1px 0 rgba(255,255,255,0.04)')}
+                >
+                  <input
+                    id="analysis-input"
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
+                    placeholder="Paste article text or URL here..."
+                    className="flex-1 bg-transparent border-none outline-none text-sm py-4"
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      color: 'rgba(255,255,255,0.85)',
+                      caretColor: '#1173d4',
+                    }}
+                    disabled={loading}
+                  />
+                  <button
+                    id="analyze-button"
+                    onClick={handleAnalyze}
+                    disabled={loading}
+                    className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-40"
+                    style={{
+                      background: 'linear-gradient(135deg, #1173d4 0%, #0d5faf 100%)',
+                      boxShadow: '0 0 16px rgba(17,115,212,0.5), 0 2px 8px rgba(0,0,0,0.4)',
+                    }}
+                  >
+                    <ArrowRight className="w-4 h-4 text-white" />
+                  </button>
+                </div>
+              )}
+
+              <p className="mt-4 text-xs font-mono" style={{color: 'rgba(255,255,255,0.2)', letterSpacing: '0.08em'}}>ENTER ↵ to execute &nbsp;·&nbsp; supports raw text or https:// URLs</p>
             </div>
           </div>
           
