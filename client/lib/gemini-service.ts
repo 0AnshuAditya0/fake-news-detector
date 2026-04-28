@@ -5,11 +5,12 @@ export interface GeminiAnalysis {
   flags: string[];
   factualConcerns: string[];
   credibilityScore: number;
+  sentimentScore: number;
+  biasScore: number;
 }
 
 let lastSuccessfulModel: string | null = null;
 const modelCooldowns = new Map<string, number>();
-
 
 const geminiStats = {
   totalCalls: 0,
@@ -41,7 +42,6 @@ function getPreferredModels(): string[] {
 
   return availableModels.length > 0 ? availableModels : allModels;
 }
-
 
 function extractJson(text: string): any {
   const firstBrace = text.indexOf('{');
@@ -84,7 +84,13 @@ export async function analyzeWithGemini(
 TEXT: "${text.slice(0, 3000)}"
 
 Respond with ONLY valid JSON (no markdown, no backticks):
-{"prediction":"FAKE","confidence":85,"reasoning":"Brief explanation","flags":["flag1","flag2"],"factualConcerns":["concern1"],"credibilityScore":75}`;
+{"prediction":"FAKE","confidence":85,"reasoning":"Brief explanation","flags":["flag1","flag2"],"factualConcerns":["concern1"],"credibilityScore":75,"sentimentScore":60,"biasScore":40}
+    
+Definitions:
+- confidence: 0-100 (How confident are you in your prediction? 0=Unsure, 100=Certain)
+- credibilityScore: 0-100 (0=Completely Unreliable/Fake, 100=High Credibility/Verified)
+- sentimentScore: 0-100 (0=Highly Toxic/Emotional, 100=Neutral/Professional)
+- biasScore: 0-100 (0=Propaganda/Extreme Bias, 100=Unbiased/Balanced)`;
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${API_KEY}`,
@@ -128,6 +134,9 @@ Respond with ONLY valid JSON (no markdown, no backticks):
       geminiStats.failures++;
       return null;
     }
+
+    // DEBUG LOGGING
+    console.log(`🔍 Raw Gemini Response [${modelName}]:`, generatedText.substring(0, 500));
 
     const result = extractJson(generatedText);
     if (!result) {

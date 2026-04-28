@@ -20,9 +20,8 @@ export async function POST(request: NextRequest) {
       url = ""
     } = body;
 
-    const { error } = await supabase.from('analyses').insert({
+    const { error } = await supabase.from('analyses').upsert({
       id: (id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) ? id : undefined,
-      user_id: '00000000-0000-0000-0000-000000000000',
       prediction,
       confidence,
       overall_score: overallScore,
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
       original_text: excerpt,
       url,
       created_at: new Date(timestamp || Date.now()).toISOString()
-    });
+    }, { onConflict: 'id' });
 
     if (error) {
       console.error("Supabase insert error details:", {
@@ -53,9 +52,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("Error saving global stats:", error);
+    
+    // Return gracefully if Supabase is offline but don't crash
     return NextResponse.json(
-      { error: "Failed to save stats" },
-      { status: 500 }
+      { success: false, warning: "Failed to save stats due to database connection issue." },
+      { status: 200 }
     );
   }
 }
@@ -148,9 +149,19 @@ export async function GET() {
     });
   } catch (error: any) {
     console.error("Error fetching global stats:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch stats" },
-      { status: 500 }
-    );
+    
+    // Return empty stats if Supabase is down
+    return NextResponse.json({
+      totalAnalyses: 0,
+      fakeDetected: 0,
+      fakeCount: 0,
+      realCount: 0,
+      uncertainCount: 0,
+      averageConfidence: 0,
+      mostAnalyzedDomain: "N/A",
+      recentAnalyses: [],
+      topFlags: [],
+      averageSignals: []
+    });
   }
 }

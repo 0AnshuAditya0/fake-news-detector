@@ -21,6 +21,11 @@ export interface SourceInfo {
   credibility: CredibilityLevel;
 }
 
+export interface LinguisticTrigger {
+  word: string;
+  weight: number;
+}
+
 export interface AnalysisResult {
   id: string;
   prediction: Prediction;
@@ -38,6 +43,7 @@ export interface AnalysisResult {
     prediction: string;
     confidence: number;
   };
+  triggers?: LinguisticTrigger[];
 }
 
 export interface AnalysisRequest {
