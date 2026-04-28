@@ -31,10 +31,12 @@ server/.venv/
 server/venv/
 
 *.csv
-*.pkl
 *.h5
 *.pt
 *.pth
+client/public/models/*.pkl
+!server/custom_fake_news_model.pkl
+!server/tfidf_vectorizer.pkl
 
 vocabulary.json
 
